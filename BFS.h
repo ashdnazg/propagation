@@ -5,19 +5,21 @@ class BFSSearcher
 {
 public:
 	typedef typename D::NodeType DomainNode;
+	typedef typename D::CostType DomainCost;
+	typedef Neighbor<DomainNode, DomainCost> DomainNeighbor;
 
 	struct Node {
 		DomainNode domainNode;
-		int g;
+		DomainCost g;
 	};
 
 	BFSSearcher(const D* domain_) : expanded(0), generated(0), domain(domain_) { }
 	void reset(DomainNode start_, DomainNode goal_);
 	bool isEmpty() const;
 	BFSSearcher<D>::Node expand();
-	void generate(DomainNode node, int distance);
-	void generate(std::vector<DomainNode>& nodesVec, int distance);
-	int search(DomainNode start, DomainNode goal);
+	void generate(DomainNode node, DomainCost distance);
+	void generate(std::vector<DomainNeighbor>& nodesVec, DomainCost distance);
+	DomainCost search(DomainNode start, DomainNode goal);
 
 
 	unsigned expanded;
@@ -40,7 +42,7 @@ void BFSSearcher<D>::reset(DomainNode start_, DomainNode goal_)
 }
 
 template <class D>
-void BFSSearcher<D>::generate(DomainNode node, int distance)
+void BFSSearcher<D>::generate(DomainNode node, DomainCost distance)
 {
 	if (openList.contains(node) || closedList.contains(node))
 		return;
@@ -52,10 +54,10 @@ void BFSSearcher<D>::generate(DomainNode node, int distance)
 }
 
 template <class D>
-void BFSSearcher<D>::generate(std::vector<DomainNode>& nodesVec, int distance)
+void BFSSearcher<D>::generate(std::vector<DomainNeighbor>& nodesVec, DomainCost distance)
 {
-	for (const DomainNode& node: nodesVec) {
-		generate(node, distance);
+	for (const DomainNeighbor& n: nodesVec) {
+		generate(n.node, distance + n.cost);
 	}
 }
 
@@ -71,8 +73,8 @@ typename BFSSearcher<D>::Node BFSSearcher<D>::expand()
 
 
 template<class D>
-int BFSSearcher<D>::search(DomainNode start_, DomainNode goal_) {
-	std::vector<DomainNode> tempNodes;
+typename BFSSearcher<D>::DomainCost BFSSearcher<D>::search(DomainNode start_, DomainNode goal_) {
+	std::vector<DomainNeighbor> tempNodes;
 	reset(start_, goal_);
 
 	while (!q.empty()) {
@@ -83,7 +85,7 @@ int BFSSearcher<D>::search(DomainNode start_, DomainNode goal_) {
 
 		tempNodes.clear();
 		domain->getNeighbors(best.domainNode, tempNodes);
-		generate(tempNodes, best.g + 1);
+		generate(tempNodes, best.g);
 	}
 	return -1;
 }

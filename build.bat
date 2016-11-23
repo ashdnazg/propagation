@@ -1,1 +1,1 @@
-g++ -g --std=gnu++11 Searcher.cpp Domains.cpp -O0 -Wall -o main.exe
+g++ -g --std=gnu++11 Searcher.cpp Domains.cpp ScenarioLoader.cpp -O0 -Wall -o main.exe

@@ -11,25 +11,27 @@ class AStarSearcher
 {
 public:
 	typedef typename D::NodeType DomainNode;
+	typedef typename D::CostType DomainCost;
+	typedef Neighbor<DomainNode, DomainCost> DomainNeighbor;
 
 	struct Node {
 		DomainNode domainNode;
-		int g;
-		int f;
+		DomainCost g;
+		DomainCost f;
 	};
 
 	AStarSearcher(const D* domain_) : expanded(0), generated(0), domain(domain_) { }
 	void reset(DomainNode start_, DomainNode goal_);
 	bool isEmpty() const;
 	Node expand();
-	void generate(DomainNode node, int distance);
-	void generate(std::vector<DomainNode>& nodesVec, int distance);
-	int search(DomainNode start, DomainNode goal);
+	void generate(DomainNode node, DomainCost distance);
+	void generate(std::vector<DomainNeighbor>& nodesVec, DomainCost distance);
+	DomainCost search(DomainNode start, DomainNode goal);
 
 	// Functor for priority queue ordering
 	struct lessCost: public std::binary_function<const Node&, const Node&, bool> {
 		inline bool operator() (const Node& x, const Node& y) const {
-			return (x.f ==  y.f) ? (x.g < y.g) : (x.f > y.f);
+			return x.f == y.f ? (x.g < y.g) : (x.f > y.f);
 		}
 	};
 
@@ -53,23 +55,23 @@ void AStarSearcher<D,H>::reset(DomainNode start_, DomainNode goal_)
 }
 
 template <class D, class H>
-void AStarSearcher<D,H>::generate(DomainNode node, int distance)
+void AStarSearcher<D,H>::generate(DomainNode node, DomainCost distance)
 {
 	if (openList.contains(node) || closedList.contains(node))
 		return;
 
 	++generated;
 	openList.insert(node);
-	int h = H::get(domain, node, goal);
+	DomainCost h = H::get(domain, node, goal);
 	Node n = {node, distance, distance + h};
 	q.push(n);
 }
 
 template <class D, class H>
-void AStarSearcher<D,H>::generate(std::vector<DomainNode>& nodesVec, int distance)
+void AStarSearcher<D,H>::generate(std::vector<DomainNeighbor>& nodesVec, DomainCost distance)
 {
-	for (const DomainNode& node: nodesVec) {
-		generate(node, distance);
+	for (const DomainNeighbor& n: nodesVec) {
+		generate(n.node, distance + n.cost);
 	}
 }
 
@@ -85,8 +87,8 @@ typename AStarSearcher<D,H>::Node AStarSearcher<D,H>::expand()
 
 
 template<class D, class H>
-int AStarSearcher<D,H>::search(DomainNode start_, DomainNode goal_) {
-	std::vector<DomainNode> tempNodes;
+typename AStarSearcher<D,H>::DomainCost AStarSearcher<D,H>::search(DomainNode start_, DomainNode goal_) {
+	std::vector<DomainNeighbor> tempNodes;
 	reset(start_, goal_);
 
 	while (!q.empty()) {
@@ -97,7 +99,7 @@ int AStarSearcher<D,H>::search(DomainNode start_, DomainNode goal_) {
 
 		tempNodes.clear();
 		domain->getNeighbors(best.domainNode, tempNodes);
-		generate(tempNodes, best.g + 1);
+		generate(tempNodes, best.g);
 	}
 	return -1;
 }
