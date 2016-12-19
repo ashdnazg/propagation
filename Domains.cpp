@@ -114,35 +114,46 @@ bool OctileDomain::List::contains(unsigned node) const
 
 
 
-// PancakeDomain::PancakeDomain(unsigned xSize_, unsigned ySize_)
- // : size(size_) { }
+PancakeDomain::PancakeDomain(unsigned size_)
+ : size(size_) {
+	unsigned f = 1;
+	factorials.push_back(f);
+	for (unsigned i = 1; i < size; ++i) {
+		f *= i;
+		factorials.push_back(f);
+	}
+ }
 
-// void PancakeDomain::getNeighbors(unsigned node, std::vector<unsigned>& nodesVec) const
-// {
-	// nodesVec.resize(size - 2, 0);
-	// for (int numFlipped = 2; numFlipped < size; ++numFlipped) {
-		// unsigned newNode = node;
-		// for (int pancake = 0; pancake < numFlipped) {
-			// newNode +=
-		// }
+void PancakeDomain::getNeighbors(unsigned node, std::vector<Neighbor<unsigned, unsigned>>& nodesVec) const
+{
+	for (unsigned numFlipped = 2; numFlipped < size; ++numFlipped) {
+		//unsigned newNode = node;
+		unsigned oldFlippedPart = node % factorials[numFlipped];
+		unsigned newFlippedPart = factorials[numFlipped] - 1;
+		for (unsigned pancake = 2; pancake <= numFlipped; ++pancake) {
+			const unsigned v = oldFlippedPart % pancake;
+			newFlippedPart -= v * factorials[numFlipped - pancake + 1];
+			oldFlippedPart /= pancake;
+		}
+		const unsigned newNode = node - oldFlippedPart + newFlippedPart;
+		nodesVec.push_back({newNode, 1});
+	}
+}
 
-	// }
-// }
+bool PancakeDomain::same(unsigned node1, unsigned node2) const
+{
+	return node1 == node2;
+}
 
-// bool PancakeDomain::same(unsigned node1, unsigned node2) const
-// {
-	// return node1 == node2;
-// }
+void PancakeDomain::List::insert(unsigned node)
+{
+	if (bitField.size() <= node)
+		bitField.resize(node + 1, false);
 
-// void PancakeDomain::List::insert(unsigned node)
-// {
-	// if (bitField.size() <= node)
-		// bitField.resize(node + 1, false);
+	bitField[node] = true;
+}
 
-	// bitField[node] = true;
-// }
-
-// bool PancakeDomain::List::contains(unsigned node) const
-// {
-	// return (bitField.size() > node) && bitField[node];
-// }
+bool PancakeDomain::List::contains(unsigned node) const
+{
+	return (bitField.size() > node) && bitField[node];
+}
