@@ -4,6 +4,7 @@ template <typename T, typename Cont, typename Comp>
 class PriorityQueue: public std::priority_queue<T, Cont, Comp> {
 public:
 	void clear() { this->c.clear(); }
+	const Cont& get() { return this->c; }
 };
 
 template <class D, class H>
@@ -20,10 +21,10 @@ public:
 		DomainCost f;
 	};
 
-	AStarSearcher(const D* domain_) : expanded(0), generated(0), domain(domain_) { }
+	AStarSearcher(const D* domain_) : expanded(0), generated(0), domain(domain_), bestFound(1e10) { }
 	void reset(DomainNode start_, DomainNode goal_);
 	bool isEmpty() const;
-	Node expand();
+	bool expand(Node& best);
 	void generate(DomainNode node, DomainCost distance);
 	void generate(std::vector<DomainNeighbor>& nodesVec, DomainCost distance);
 	DomainCost search(DomainNode start, DomainNode goal);
@@ -43,6 +44,7 @@ private:
 	typename D::List closedList;
 	PriorityQueue<Node, std::vector<Node>, lessCost> q;
 	const D* domain;
+	DomainCost bestFound;
 };
 
 template <class D, class H>
@@ -57,14 +59,18 @@ void AStarSearcher<D,H>::reset(DomainNode start_, DomainNode goal_)
 template <class D, class H>
 void AStarSearcher<D,H>::generate(DomainNode node, DomainCost distance)
 {
-	if (openList.contains(node) || closedList.contains(node))
+	if (closedList.contains(node))
 		return;
 
-	++generated;
 	openList.insert(node);
 	DomainCost h = H::get(domain, node, goal);
 	Node n = {node, distance, distance + h};
-	q.push(n);
+	if (domain->same(node, goal)) {
+		bestFound = std::min(n.g, bestFound);
+	} else if (n.f < bestFound) {
+		q.push(n);
+		++generated;
+	}
 }
 
 template <class D, class H>
@@ -76,13 +82,16 @@ void AStarSearcher<D,H>::generate(std::vector<DomainNeighbor>& nodesVec, DomainC
 }
 
 template <class D, class H>
-typename AStarSearcher<D,H>::Node AStarSearcher<D,H>::expand()
+bool AStarSearcher<D,H>::expand(Node& best)
 {
-	++expanded;
-	Node best = q.top();
+	best = q.top();
 	q.pop();
+	if (closedList.contains(best.domainNode))
+		return false;
+
+	++expanded;
 	closedList.insert(best.domainNode);
-	return best;
+	return true;
 }
 
 
@@ -92,14 +101,16 @@ typename AStarSearcher<D,H>::DomainCost AStarSearcher<D,H>::search(DomainNode st
 	reset(start_, goal_);
 
 	while (!q.empty()) {
-		Node best = expand();
+		if (q.top().f >= bestFound)
+			return bestFound;
 
-		if (domain->same(best.domainNode, goal))
-			return best.g;
+		Node best;
+		if (!expand(best))
+			continue;
 
 		tempNodes.clear();
 		domain->getNeighbors(best.domainNode, tempNodes);
 		generate(tempNodes, best.g);
 	}
-	return -1;
+	return bestFound;
 }

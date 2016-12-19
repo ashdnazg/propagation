@@ -20,10 +20,10 @@ public:
 		Direction dir;
 	};
 
-	MMSearcher(const D* domain_) : expanded(0), generated(0), domain(domain_) { }
+	MMSearcher(const D* domain_) : expanded(0), generated(0), domain(domain_), bestFound(1e10) { }
 	void reset(DomainNode start_, DomainNode goal_);
 	bool isEmpty() const;
-	Node expand();
+	bool expand(Node& best);
 	void generate(DomainNode node, DomainCost distance, Direction dir);
 	void generate(std::vector<DomainNeighbor>& nodesVec, DomainCost distance, Direction dir);
 	DomainCost search(DomainNode start, DomainNode goal);
@@ -40,11 +40,13 @@ public:
 	unsigned expanded;
 	unsigned generated;
 private:
+	DomainNode start;
 	DomainNode goal;
 	typename D::List openList[2];
 	typename D::List closedList[2];
 	PriorityQueue<Node, std::vector<Node>, lessCost> q[2];
 	const D* domain;
+	DomainCost bestFound;
 };
 
 template <class D, class H>
@@ -53,6 +55,7 @@ void MMSearcher<D,H>::reset(DomainNode start_, DomainNode goal_)
 	q[FORWARD].clear();
 	q[BACK].clear();
 	goal = goal_;
+	start = start_;
 
 	generate(start_, 0, FORWARD);
 	generate(goal_, 0, BACK);
@@ -61,14 +64,23 @@ void MMSearcher<D,H>::reset(DomainNode start_, DomainNode goal_)
 template <class D, class H>
 void MMSearcher<D,H>::generate(DomainNode node, DomainCost distance, Direction dir)
 {
-	if (openList[dir].contains(node) || closedList[dir].contains(node))
+	if (closedList[dir].contains(node))
 		return;
 
-	++generated;
 	openList[dir].insert(node);
-	DomainCost h = H::get(domain, node, goal);
-	Node n = {node, distance, distance + h, dir};
-	q[dir].push(n);
+	DomainCost h = H::get(domain, node, dir == FORWARD ? goal : start);
+	Node n = {node, distance, std::max(distance + h, 2 * distance), dir};
+	if (openList[!dir].contains(node)) {
+		for (const Node& other: q[!dir].get()) {
+			if (other.domainNode == n.domainNode) {
+				bestFound = std::min(n.g + other.g, bestFound);
+				break;
+			}
+		}
+	} else if (n.f < bestFound) {
+		q[dir].push(n);
+		++generated;
+	}
 }
 
 template <class D, class H>
@@ -80,14 +92,18 @@ void MMSearcher<D,H>::generate(std::vector<DomainNeighbor>& nodesVec, DomainCost
 }
 
 template <class D, class H>
-typename MMSearcher<D,H>::Node MMSearcher<D,H>::expand()
+bool MMSearcher<D,H>::expand(Node& best)
 {
-	++expanded;
 	Direction d = (Direction) compareNodes(q[FORWARD].top(), q[BACK].top());
-	Node best = q[d].top();
+	best = q[d].top();
 	q[d].pop();
+	if (closedList[d].contains(best.domainNode))
+		return false;
+
+	//printf("expanded: (%d) %u %f %f\n", d, best.domainNode, best.f, bestFound);
+	++expanded;
 	closedList[d].insert(best.domainNode);
-	return best;
+	return true;
 }
 
 
@@ -97,14 +113,16 @@ typename MMSearcher<D,H>::DomainCost MMSearcher<D,H>::search(DomainNode start_, 
 	reset(start_, goal_);
 
 	while (!q[FORWARD].empty() && !q[BACK].empty()) {
-		Node best = expand();
-
-		if (closedList[!best.dir].contains(best.domainNode))
-			return best.g;
+		const float stopCond = std::max(q[FORWARD].top().f, q[BACK].top().f);
+		if (stopCond >= bestFound - 0.01)
+			return bestFound;
+		Node best;
+		if (!expand(best))
+			continue;
 
 		tempNodes.clear();
 		domain->getNeighbors(best.domainNode, tempNodes);
 		generate(tempNodes, best.g, best.dir);
 	}
-	return -1;
+	return bestFound;
 }
