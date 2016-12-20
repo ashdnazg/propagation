@@ -97,6 +97,7 @@ public:
 	void getNeighbors(std::uint64_t node, std::vector<Neighbor<std::uint64_t, unsigned>>& nodesVec) const;
 	bool same(std::uint64_t node1, std::uint64_t node2) const;
 
+	template<int M>
 	struct GAP {
 		static inline unsigned get(const PancakeDomain* d, std::uint64_t node1, std::uint64_t node2) {
 			const std::uint64_t mask = 0xF;
@@ -108,7 +109,7 @@ public:
 
 			unsigned h = 0;
 			unsigned char prevPancake = legend[(node2 & mask)];
-			for (unsigned pancake = 1; pancake < d->size; ++pancake) {
+			for (unsigned pancake = 1; pancake < (d->size - M); ++pancake) {
 				const unsigned shift = pancake * 4;
 				unsigned char nextPancake = legend[((node2 & (mask << shift)) >> shift)];
 				h += ((nextPancake + 1u - prevPancake) > 2u); // unsigned values, so this checks if abs(next - prev) > 1
@@ -120,9 +121,9 @@ public:
 	};
 
 	static unsigned compressPancake(std::uint64_t node);
+	static std::uint64_t compressCount;
 
 	unsigned size;
-
 private:
 	std::array<unsigned, 20> factorials;
 };

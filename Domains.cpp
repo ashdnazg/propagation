@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <array>
+#include <cassert>
 #include <cinttypes>
 #include <cstdio>
 #include <vector>
@@ -132,17 +133,13 @@ bool OctileDomain::List::contains(unsigned node) const
 	return (bitField.size() > node) && bitField[node];
 }
 
-
+std::uint64_t PancakeDomain::compressCount = 0;
 
 PancakeDomain::PancakeDomain(unsigned size_)
- : size(size_) {
-	unsigned f = 1;
-	factorials[0] = f;
-	for (unsigned i = 1; i <= size; ++i) {
-		f *= i;
-		factorials[i] = f;
-	}
- }
+ : size(size_)
+{
+	assert(size < 13);
+}
 
 void PancakeDomain::getNeighbors(std::uint64_t node, std::vector<Neighbor<std::uint64_t, unsigned>>& nodesVec) const
 {
@@ -211,6 +208,7 @@ unsigned PancakeDomain::compressPancake(std::uint64_t node)
 		compressed *= i + 1;
 		compressed += ((count_greater & (mask << shift)) >> shift);
 	}
+	++PancakeDomain::compressCount;
 	//printf("0x%06x compressed to %u from count: %06x\n", (unsigned) node, compressed, (unsigned) count_greater);
 	return compressed;
 }

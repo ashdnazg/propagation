@@ -121,6 +121,7 @@ typename MMSearcher<D,H>::DomainCost MMSearcher<D,H>::search(DomainNode start_, 
 		const float stopCond = std::max(q[FORWARD].top().f, q[BACK].top().f);
 		if (stopCond >= bestFound - 0.01)
 			return bestFound;
+
 		Node best;
 		if (!expand(best))
 			continue;

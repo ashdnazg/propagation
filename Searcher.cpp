@@ -14,25 +14,28 @@
 int main() {
 	//GridDomain domain(10,10);
 	const OctileDomain octile(10,10);
-	const PancakeDomain pancake(9);
+	const PancakeDomain pancake(11);
 	//BFSSearcher<GridDomain> searcher(&domain);
 	//AStarSearcher<GridDomain, GridDomain::ManhattanDistance> searcher(&domain);
+	// {
+		// AStarSearcher<OctileDomain, OctileDomain::OctileDistance> searcher(&octile);
+		// float res = searcher.search(0,58);
+		// printf("%f %d %d\n", res, searcher.expanded, searcher.generated);
+	// }
+	// printf("\n");
+	// {
+		// MMSearcher<OctileDomain, OctileDomain::OctileDistance> searcher(&octile);
+		// float res = searcher.search(0,58);
+		// printf("%f %d %d\n", res, searcher.expanded, searcher.generated);
+	// }
+	// printf("\n");
 	{
-		AStarSearcher<OctileDomain, OctileDomain::OctileDistance> searcher(&octile);
-		float res = searcher.search(0,58);
-		printf("%f %d %d\n", res, searcher.expanded, searcher.generated);
-	}
-	printf("\n");
-	{
-		MMSearcher<OctileDomain, OctileDomain::OctileDistance> searcher(&octile);
-		float res = searcher.search(0,58);
-		printf("%f %d %d\n", res, searcher.expanded, searcher.generated);
-	}
-	printf("\n");
-	{
-		MMSearcher<PancakeDomain, PancakeDomain::GAP> searcher(&pancake);
-		unsigned res = searcher.search(0x012345678ull,0x428075316ull);
+		AStarSearcher<PancakeDomain, PancakeDomain::GAP<4>> searcher(&pancake);
+		//MMSearcher<PancakeDomain, PancakeDomain::GAP<4>> searcher(&pancake);
+		//BFSSearcher<PancakeDomain> searcher(&pancake);
+		unsigned res = searcher.search(0x0123456789Aull,0x492A8075316ull);
 		printf("%u %d %d\n", res, searcher.expanded, searcher.generated);
+		printf("compressCount: %llu\n", PancakeDomain::compressCount);
 		// typedef typename PancakeDomain::NodeType DomainNode;
 		// typedef typename PancakeDomain::CostType DomainCost;
 		// typedef Neighbor<DomainNode, DomainCost> DomainNeighbor;
