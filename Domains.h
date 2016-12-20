@@ -82,30 +82,44 @@ class PancakeDomain
 {
 public:
 	PancakeDomain(unsigned size_);
-	typedef unsigned NodeType;
+	typedef std::uint64_t NodeType;
 	typedef unsigned CostType;
 	class List
 	{
 	public:
-		void insert(unsigned node);
-		bool contains(unsigned node) const;
+		void insert(std::uint64_t node);
+		bool contains(std::uint64_t node) const;
 		std::vector<bool> bitField;
 	};
-	void getNeighbors(unsigned node, std::vector<Neighbor<unsigned, unsigned>>& nodesVec) const;
-	bool same(unsigned node1, unsigned node2) const;
+	void getNeighbors(std::uint64_t node, std::vector<Neighbor<std::uint64_t, unsigned>>& nodesVec) const;
+	bool same(std::uint64_t node1, std::uint64_t node2) const;
 
 	struct GAP {
-		static inline int get(const GridDomain* d, unsigned node1, unsigned node2) {
-			unsigned x1 = node1 % d->xSize;
-			unsigned y1 = node1 / d->xSize;
-			unsigned x2 = node2 % d->xSize;
-			unsigned y2 = node2 / d->xSize;
-			return std::abs((int)(x1 - x2)) + std::abs((int)(y1 - y2));
+		static inline int get(const PancakeDomain* d, std::uint64_t node1, std::uint64_t node2) {
+			const std::uint64_t mask = 0xF;
+			std::array<unsigned char, 13> legend;
+			for (unsigned char pancake = 0; pancake < d->size; ++pancake) {
+				const unsigned shift = pancake * 4;
+				legend[((node1 & (mask << shift)) >> shift)] = pancake;
+			}
+
+			int h = 0;
+			unsigned char prevPancake = legend[(node2 & mask)];
+			for (unsigned pancake = 1; pancake < d->size; ++pancake) {
+				const unsigned shift = pancake * 4;
+				unsigned char nextPancake = legend[((node2 & (mask << shift)) >> shift)];
+				h += ((nextPancake + 1u - prevPancake) > 2u); // unsigned values, so this checks if abs(next - prev) > 1
+				prevPancake = nextPancake;
+			}
+
+			return h;
 		}
 	};
+
+	static unsigned compressPancake(std::uint64_t node);
 
 	unsigned size;
 
 private:
-	std::vector<unsigned> factorials;
+	std::array<unsigned, 20> factorials;
 };

@@ -1,4 +1,7 @@
 #include <algorithm>
+#include <array>
+#include <cinttypes>
+#include <cstdio>
 #include <vector>
 #include "Domains.h"
 
@@ -117,43 +120,99 @@ bool OctileDomain::List::contains(unsigned node) const
 PancakeDomain::PancakeDomain(unsigned size_)
  : size(size_) {
 	unsigned f = 1;
-	factorials.push_back(f);
-	for (unsigned i = 1; i < size; ++i) {
+	factorials[0] = f;
+	for (unsigned i = 1; i <= size; ++i) {
 		f *= i;
-		factorials.push_back(f);
+		factorials[i] = f;
 	}
  }
 
-void PancakeDomain::getNeighbors(unsigned node, std::vector<Neighbor<unsigned, unsigned>>& nodesVec) const
+void PancakeDomain::getNeighbors(std::uint64_t node, std::vector<Neighbor<std::uint64_t, unsigned>>& nodesVec) const
 {
-	for (unsigned numFlipped = 2; numFlipped < size; ++numFlipped) {
-		//unsigned newNode = node;
-		unsigned oldFlippedPart = node % factorials[numFlipped];
-		unsigned newFlippedPart = factorials[numFlipped] - 1;
-		for (unsigned pancake = 2; pancake <= numFlipped; ++pancake) {
-			const unsigned v = oldFlippedPart % pancake;
-			newFlippedPart -= v * factorials[numFlipped - pancake + 1];
-			oldFlippedPart /= pancake;
+	const std::uint64_t mask = 0xF;
+	for (unsigned numFlipped = 2; numFlipped <= size; ++numFlipped) {
+		std::uint64_t newNode = node;
+		const unsigned maxShift = (numFlipped - 1) * 4;
+		for (unsigned pancake = 0; pancake < numFlipped; ++pancake) {
+			const unsigned shift = pancake * 4;
+			const unsigned n = node & (mask << shift);
+			newNode -= n;
+			newNode += (n >> shift) << (maxShift - shift);
 		}
-		const unsigned newNode = node - oldFlippedPart + newFlippedPart;
 		nodesVec.push_back({newNode, 1});
 	}
 }
 
-bool PancakeDomain::same(unsigned node1, unsigned node2) const
+
+unsigned PancakeDomain::compressPancake(std::uint64_t node)
+{
+	std::array<unsigned char, 13> positions;
+
+	static const std::array<std::uint64_t, 13> add_masks {
+		0x0,
+		0x1,
+		0x11,
+		0x111,
+		0x1111,
+		0x11111,
+		0x111111,
+		0x1111111,
+		0x11111111,
+		0x111111111,
+		0x1111111111,
+		0x11111111111,
+		0x111111111111
+	};
+
+	const std::uint64_t mask = 0xF;
+
+	int hit_zero = 0;
+	unsigned char pos = 0;
+	while (true) {
+		const unsigned shift = pos * 4;
+		const unsigned pancake = ((node & (mask << shift)) >> shift);
+		hit_zero += (pancake == 0);
+		if (hit_zero > 1)
+			break;
+
+		positions[pancake] = pos;
+		++pos;
+	}
+
+	std::uint64_t global_mask = ~std::uint64_t(0);
+	std::uint64_t count_greater = 0; // bit mangling thing
+
+	for (unsigned i = pos - 1; i > 0; --i) {
+		const unsigned char p = positions[i];
+		count_greater += add_masks[p] & global_mask;
+		global_mask -= mask << p;
+	}
+
+	unsigned compressed = 0;
+	for (unsigned i = 0; i < pos; ++i) {
+		const unsigned shift = (pos - i - 1) * 4;
+		compressed *= i + 1;
+		compressed += ((count_greater & (mask << shift)) >> shift);
+	}
+	return compressed;
+}
+
+bool PancakeDomain::same(std::uint64_t node1, std::uint64_t node2) const
 {
 	return node1 == node2;
 }
 
-void PancakeDomain::List::insert(unsigned node)
+void PancakeDomain::List::insert(std::uint64_t node)
 {
-	if (bitField.size() <= node)
-		bitField.resize(node + 1, false);
+	const unsigned compressed = PancakeDomain::compressPancake(node);
+	if (bitField.size() <= compressed)
+		bitField.resize(compressed + 1, false);
 
-	bitField[node] = true;
+	bitField[compressed] = true;
 }
 
-bool PancakeDomain::List::contains(unsigned node) const
+bool PancakeDomain::List::contains(std::uint64_t node) const
 {
-	return (bitField.size() > node) && bitField[node];
+	const unsigned compressed = PancakeDomain::compressPancake(node);
+	return (bitField.size() > compressed) && bitField[compressed];
 }
