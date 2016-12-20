@@ -67,7 +67,6 @@ void MMSearcher<D,H>::generate(DomainNode node, DomainCost distance, Direction d
 	if (closedList[dir].contains(node))
 		return;
 
-	openList[dir].insert(node);
 	DomainCost h = H::get(domain, node, dir == FORWARD ? goal : start);
 	Node n = {node, distance, std::max(distance + h, 2 * distance), dir};
 	if (n.f < bestFound) {
@@ -82,6 +81,7 @@ void MMSearcher<D,H>::generate(DomainNode node, DomainCost distance, Direction d
 			}
 			assert(found);
 		} else {
+			openList[dir].insert(node);
 			q[dir].push(n);
 			++generated;
 		}
@@ -105,9 +105,9 @@ bool MMSearcher<D,H>::expand(Node& best)
 	if (closedList[d].contains(best.domainNode))
 		return false;
 
-	//printf("expanded: (%d) %u %f %f\n", d, best.domainNode, best.f, bestFound);
 	++expanded;
 	closedList[d].insert(best.domainNode);
+	openList[d].remove(best.domainNode);
 	return true;
 }
 

@@ -46,6 +46,15 @@ void GridDomain::List::insert(unsigned node)
 	bitField[node] = true;
 }
 
+void GridDomain::List::remove(unsigned node)
+{
+	if (bitField.size() <= node)
+		return;
+
+	bitField[node] = false;
+}
+
+
 bool GridDomain::List::contains(unsigned node) const
 {
 	return (bitField.size() > node) && bitField[node];
@@ -110,6 +119,14 @@ void OctileDomain::List::insert(unsigned node)
 	bitField[node] = true;
 }
 
+void OctileDomain::List::remove(unsigned node)
+{
+	if (bitField.size() <= node)
+		return;
+
+	bitField[node] = false;
+}
+
 bool OctileDomain::List::contains(unsigned node) const
 {
 	return (bitField.size() > node) && bitField[node];
@@ -135,7 +152,7 @@ void PancakeDomain::getNeighbors(std::uint64_t node, std::vector<Neighbor<std::u
 		const unsigned maxShift = (numFlipped - 1) * 4;
 		for (unsigned pancake = 0; pancake < numFlipped; ++pancake) {
 			const unsigned shift = pancake * 4;
-			const unsigned n = node & (mask << shift);
+			const std::uint64_t n = node & (mask << shift);
 			newNode -= n;
 			newNode += (n >> shift) << (maxShift - shift);
 		}
@@ -194,7 +211,7 @@ unsigned PancakeDomain::compressPancake(std::uint64_t node)
 		compressed *= i + 1;
 		compressed += ((count_greater & (mask << shift)) >> shift);
 	}
-	// printf("%x compressed to %u from count: %x\n", (unsigned) node, compressed, (unsigned) count_greater);
+	//printf("0x%06x compressed to %u from count: %06x\n", (unsigned) node, compressed, (unsigned) count_greater);
 	return compressed;
 }
 
@@ -210,6 +227,15 @@ void PancakeDomain::List::insert(std::uint64_t node)
 		bitField.resize(compressed + 1, false);
 
 	bitField[compressed] = true;
+}
+
+void PancakeDomain::List::remove(std::uint64_t node)
+{
+	const unsigned compressed = PancakeDomain::compressPancake(node);
+	if (bitField.size() <= compressed)
+		return;
+
+	bitField[compressed] = false;
 }
 
 bool PancakeDomain::List::contains(std::uint64_t node) const

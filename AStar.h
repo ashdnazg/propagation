@@ -40,7 +40,6 @@ public:
 	unsigned generated;
 private:
 	DomainNode goal;
-	typename D::List openList;
 	typename D::List closedList;
 	PriorityQueue<Node, std::vector<Node>, lessCost> q;
 	const D* domain;
@@ -62,7 +61,6 @@ void AStarSearcher<D,H>::generate(DomainNode node, DomainCost distance)
 	if (closedList.contains(node))
 		return;
 
-	openList.insert(node);
 	DomainCost h = H::get(domain, node, goal);
 	Node n = {node, distance, distance + h};
 	if (n.f < bestFound) {

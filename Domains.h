@@ -21,6 +21,7 @@ public:
 	{
 	public:
 		void insert(unsigned node);
+		void remove(unsigned node);
 		bool contains(unsigned node) const;
 		std::vector<bool> bitField;
 	};
@@ -53,6 +54,7 @@ public:
 	{
 	public:
 		void insert(unsigned node);
+		void remove(unsigned node);
 		bool contains(unsigned node) const;
 		std::vector<bool> bitField;
 	};
@@ -88,6 +90,7 @@ public:
 	{
 	public:
 		void insert(std::uint64_t node);
+		void remove(std::uint64_t node);
 		bool contains(std::uint64_t node) const;
 		std::vector<bool> bitField;
 	};
@@ -95,7 +98,7 @@ public:
 	bool same(std::uint64_t node1, std::uint64_t node2) const;
 
 	struct GAP {
-		static inline int get(const PancakeDomain* d, std::uint64_t node1, std::uint64_t node2) {
+		static inline unsigned get(const PancakeDomain* d, std::uint64_t node1, std::uint64_t node2) {
 			const std::uint64_t mask = 0xF;
 			std::array<unsigned char, 13> legend;
 			for (unsigned char pancake = 0; pancake < d->size; ++pancake) {
@@ -103,7 +106,7 @@ public:
 				legend[((node1 & (mask << shift)) >> shift)] = pancake;
 			}
 
-			int h = 0;
+			unsigned h = 0;
 			unsigned char prevPancake = legend[(node2 & mask)];
 			for (unsigned pancake = 1; pancake < d->size; ++pancake) {
 				const unsigned shift = pancake * 4;
