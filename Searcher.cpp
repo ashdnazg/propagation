@@ -30,6 +30,13 @@ int main() {
 	}
 	printf("\n");
 	{
+		MMSearcher<PancakeDomain, PancakeDomain::GAP> searcher(&pancake);
+		unsigned res = searcher.search(0x3120,0x0123);
+		printf("%u %d %d\n", res, searcher.expanded, searcher.generated);
+		// PancakeDomain::compressPancake(0x0123);
+		// PancakeDomain::compressPancake(0x2130);
+		// PancakeDomain::compressPancake(0x0213);
+		// PancakeDomain::compressPancake(0x3210);
 	}
 	return 0;
 }

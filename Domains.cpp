@@ -185,7 +185,7 @@ unsigned PancakeDomain::compressPancake(std::uint64_t node)
 	for (unsigned i = pos - 1; i > 0; --i) {
 		const unsigned char p = positions[i];
 		count_greater += add_masks[p] & global_mask;
-		global_mask -= mask << p;
+		global_mask -= mask << p * 4;
 	}
 
 	unsigned compressed = 0;
@@ -194,6 +194,7 @@ unsigned PancakeDomain::compressPancake(std::uint64_t node)
 		compressed *= i + 1;
 		compressed += ((count_greater & (mask << shift)) >> shift);
 	}
+	// printf("%x compressed to %u from count: %x\n", (unsigned) node, compressed, (unsigned) count_greater);
 	return compressed;
 }
 

@@ -21,7 +21,7 @@ public:
 		DomainCost f;
 	};
 
-	AStarSearcher(const D* domain_) : expanded(0), generated(0), domain(domain_), bestFound(1e10) { }
+	AStarSearcher(const D* domain_) : expanded(0), generated(0), domain(domain_), bestFound(std::numeric_limits<DomainCost>::max()) { }
 	void reset(DomainNode start_, DomainNode goal_);
 	bool isEmpty() const;
 	bool expand(Node& best);
