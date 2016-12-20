@@ -65,11 +65,13 @@ void AStarSearcher<D,H>::generate(DomainNode node, DomainCost distance)
 	openList.insert(node);
 	DomainCost h = H::get(domain, node, goal);
 	Node n = {node, distance, distance + h};
-	if (domain->same(node, goal)) {
-		bestFound = std::min(n.g, bestFound);
-	} else if (n.f < bestFound) {
-		q.push(n);
-		++generated;
+	if (n.f < bestFound) {
+		if (domain->same(node, goal)) {
+			bestFound = std::min(n.g, bestFound);
+		} else {
+			q.push(n);
+			++generated;
+		}
 	}
 }
 

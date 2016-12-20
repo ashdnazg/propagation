@@ -1,6 +1,6 @@
 from math import factorial
 
-N = 3
+N = 4
 N_FACT = factorial(N)
 
 def pretty_perm(u):
@@ -9,7 +9,6 @@ def pretty_perm(u):
 		read_list.append(u % i)
 		u /= i
 
-	print read_list
 	available = list(range(N))
 	pretty = []
 	for index in read_list[::-1]:
@@ -35,10 +34,10 @@ def ugly_perm(p):
 
 def main():
 	for u in range(N_FACT):
-		print u, N_FACT - u - 1
+		print u #, N_FACT - u - 1
 		print pretty_perm(u)
-		print pretty_perm(N_FACT - u - 1)
-		print ""
+		#print pretty_perm(N_FACT - u - 1)
+		#print ""
 
 
 if __name__ == '__main__':
