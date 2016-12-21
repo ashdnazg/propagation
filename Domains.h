@@ -26,7 +26,7 @@ public:
 		std::vector<bool> bitField;
 	};
 	void getNeighbors(unsigned node, std::vector<Neighbor<unsigned, int>>& nodesVec) const;
-	bool same(unsigned node1, unsigned node2) const;
+	static bool same(unsigned node1, unsigned node2);
 
 	struct ManhattanDistance {
 		static inline int get(const GridDomain* d, unsigned node1, unsigned node2) {
@@ -59,7 +59,7 @@ public:
 		std::vector<bool> bitField;
 	};
 	void getNeighbors(unsigned node, std::vector<Neighbor<unsigned, float>>& nodesVec) const;
-	bool same(unsigned node1, unsigned node2) const;
+	static bool same(unsigned node1, unsigned node2);
 
 	struct OctileDistance {
 		static inline float get(const OctileDomain* d, unsigned node1, unsigned node2) {
@@ -95,7 +95,7 @@ public:
 		std::vector<bool> bitField;
 	};
 	void getNeighbors(std::uint64_t node, std::vector<Neighbor<std::uint64_t, unsigned>>& nodesVec) const;
-	bool same(std::uint64_t node1, std::uint64_t node2) const;
+	static bool same(std::uint64_t node1, std::uint64_t node2);
 
 	template<int M>
 	struct GAP {

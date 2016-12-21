@@ -34,7 +34,7 @@ void GridDomain::getNeighbors(unsigned node, std::vector<Neighbor<unsigned, int>
 	}
 }
 
-bool GridDomain::same(unsigned node1, unsigned node2) const
+bool GridDomain::same(unsigned node1, unsigned node2)
 {
 	return node1 == node2;
 }
@@ -107,7 +107,7 @@ void OctileDomain::getNeighbors(unsigned node, std::vector<Neighbor<unsigned, fl
 	}
 }
 
-bool OctileDomain::same(unsigned node1, unsigned node2) const
+bool OctileDomain::same(unsigned node1, unsigned node2)
 {
 	return node1 == node2;
 }
@@ -213,7 +213,7 @@ unsigned PancakeDomain::compressPancake(std::uint64_t node)
 	return compressed;
 }
 
-bool PancakeDomain::same(std::uint64_t node1, std::uint64_t node2) const
+bool PancakeDomain::same(std::uint64_t node1, std::uint64_t node2)
 {
 	return node1 == node2;
 }

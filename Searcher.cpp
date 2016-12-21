@@ -7,6 +7,7 @@
 #include <queue>
 #include <vector>
 #include "Domains.h"
+#include "Queues.h"
 #include "BFS.h"
 #include "AStar.h"
 #include "MM.h"
@@ -30,8 +31,8 @@ int main() {
 	// }
 	// printf("\n");
 	{
-		AStarSearcher<PancakeDomain, PancakeDomain::GAP<4>> searcher(&pancake);
-		//MMSearcher<PancakeDomain, PancakeDomain::GAP<4>> searcher(&pancake);
+		//AStarSearcher<PancakeDomain, PancakeDomain::GAP<9>> searcher(&pancake);
+		MMSearcher<PancakeDomain, PancakeDomain::GAP<9>> searcher(&pancake);
 		//BFSSearcher<PancakeDomain> searcher(&pancake);
 		unsigned res = searcher.search(0x0123456789Aull,0x492A8075316ull);
 		printf("%u %d %d\n", res, searcher.expanded, searcher.generated);

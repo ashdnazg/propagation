@@ -1,12 +1,5 @@
 #pragma once
 
-template <typename T, typename Cont, typename Comp>
-class PriorityQueue: public std::priority_queue<T, Cont, Comp> {
-public:
-	void clear() { this->c.clear(); }
-	const Cont& get() { return this->c; }
-};
-
 template <class D, class H>
 class AStarSearcher
 {
@@ -29,19 +22,12 @@ public:
 	void generate(std::vector<DomainNeighbor>& nodesVec, DomainCost distance);
 	DomainCost search(DomainNode start, DomainNode goal);
 
-	// Functor for priority queue ordering
-	struct lessCost: public std::binary_function<const Node&, const Node&, bool> {
-		inline bool operator() (const Node& x, const Node& y) const {
-			return x.f == y.f ? (x.g < y.g) : (x.f > y.f);
-		}
-	};
-
 	unsigned expanded;
 	unsigned generated;
 private:
 	DomainNode goal;
 	typename D::List closedList;
-	PriorityQueue<Node, std::vector<Node>, lessCost> q;
+	BucketQueue<Node, D> q;
 	const D* domain;
 	DomainCost bestFound;
 };
@@ -64,7 +50,7 @@ void AStarSearcher<D,H>::generate(DomainNode node, DomainCost distance)
 	DomainCost h = H::get(domain, node, goal);
 	Node n = {node, distance, distance + h};
 	if (n.f < bestFound) {
-		if (domain->same(node, goal)) {
+		if (D::same(node, goal)) {
 			bestFound = std::min(n.g, bestFound);
 		} else {
 			q.push(n);

@@ -30,12 +30,6 @@ public:
 	static inline bool compareNodes(const Node& x, const Node& y) {
 		return x.f == y.f ? (x.g < y.g) : (x.f > y.f);
 	}
-	// Functor for priority queue ordering
-	struct lessCost: public std::binary_function<const Node&, const Node&, bool> {
-		inline bool operator() (const Node& x, const Node& y) const {
-			return compareNodes(x, y);
-		}
-	};
 
 	unsigned expanded;
 	unsigned generated;
@@ -44,7 +38,7 @@ private:
 	DomainNode goal;
 	typename D::List openList[2];
 	typename D::List closedList[2];
-	PriorityQueue<Node, std::vector<Node>, lessCost> q[2];
+	BucketQueue<Node, D> q[2];
 	const D* domain;
 	DomainCost bestFound;
 };
@@ -71,15 +65,7 @@ void MMSearcher<D,H>::generate(DomainNode node, DomainCost distance, Direction d
 	Node n = {node, distance, std::max(distance + h, 2 * distance), dir};
 	if (n.f < bestFound) {
 		if (openList[!dir].contains(node)) {
-			bool found = false;
-			for (const Node& other: q[!dir].get()) {
-				if (domain->same(other.domainNode, n.domainNode)) {
-					found = true;
-					bestFound = std::min(n.g + other.g, bestFound);
-					break;
-				}
-			}
-			assert(found);
+			bestFound = std::min(n.g + q[!dir].getMinG(n), bestFound);
 		} else {
 			openList[dir].insert(node);
 			q[dir].push(n);

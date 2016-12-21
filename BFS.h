@@ -80,7 +80,7 @@ typename BFSSearcher<D>::DomainCost BFSSearcher<D>::search(DomainNode start_, Do
 	while (!q.empty()) {
 		Node best = expand();
 
-		if (domain->same(best.domainNode, goal))
+		if (D::same(best.domainNode, goal))
 			return best.g;
 
 		tempNodes.clear();
