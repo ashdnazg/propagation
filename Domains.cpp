@@ -3,6 +3,7 @@
 #include <cassert>
 #include <cinttypes>
 #include <cstdio>
+#include <unordered_set>
 #include <vector>
 #include "Domains.h"
 
@@ -240,4 +241,88 @@ bool PancakeDomain::List::contains(std::uint64_t node) const
 {
 	const unsigned compressed = PancakeDomain::compressPancake(node);
 	return (bitField.size() > compressed) && bitField[compressed];
+}
+
+
+Tile16Domain::Tile16Domain()
+{ }
+
+void Tile16Domain::getNeighbors(std::uint64_t node, std::vector<Neighbor<std::uint64_t, unsigned>>& nodesVec) const
+{
+	unsigned blankPos = 15;
+	const std::uint64_t mask = 0xF;
+
+	std::uint64_t lastTile = 0;
+
+
+	// Reconstructing the original node
+	for (unsigned pos = 0; pos < 15; ++pos) {
+		const std::uint64_t tile = (node >> (pos * 4)) & mask;
+		if (tile == 0) {
+			blankPos = pos;
+		} else {
+			lastTile = lastTile + tile;
+		}
+	}
+	lastTile = (120 - lastTile) & mask;
+	std::uint64_t reconstructed = (node & 0x0FFFFFFFFFFFFFFF) + (lastTile << 60);
+	std::uint64_t lastDir = (node >> 60);
+	printf("lastDir: 0x%016llx \n", lastDir);
+	printf("reconstructed: 0x%016llx \n", reconstructed);
+	if (lastDir != 0x1 && ((blankPos & 0x3) != 0x0)) {
+		unsigned movePos = blankPos - 1;
+		std::uint64_t movedTile = reconstructed & (mask << (movePos * 4));
+		std::uint64_t newNode = reconstructed - movedTile;
+		newNode += (movedTile << 4);
+		newNode = (newNode & 0x0FFFFFFFFFFFFFFF) | 0x1000000000000000;
+		nodesVec.push_back({newNode, 1});
+	}
+
+	if (lastDir != 0x2 && ((blankPos & 0x3) != 0x3)) {
+		unsigned movePos = blankPos + 1;
+		std::uint64_t movedTile = reconstructed & (mask << (movePos * 4));
+		std::uint64_t newNode = reconstructed - movedTile;
+		newNode += (movedTile >> 4);
+		newNode = (newNode & 0x0FFFFFFFFFFFFFFF) | 0x2000000000000000;
+		nodesVec.push_back({newNode, 1});
+	}
+
+	if (lastDir != 0x3 && ((blankPos & 0xC) != 0x0)) {
+		unsigned movePos = blankPos - 4;
+		std::uint64_t movedTile = reconstructed & (mask << (movePos * 4));
+		std::uint64_t newNode = reconstructed - movedTile;
+		newNode += (movedTile << 16);
+		newNode = (newNode & 0x0FFFFFFFFFFFFFFF) | 0x3000000000000000;
+		nodesVec.push_back({newNode, 1});
+	}
+
+	if (lastDir != 0x4 && ((blankPos & 0xC) != 0xC)) {
+		unsigned movePos = blankPos + 4;
+		std::uint64_t movedTile = reconstructed & (mask << (movePos * 4));
+		std::uint64_t newNode = reconstructed - movedTile;
+		newNode += (movedTile >> 16);
+		newNode = (newNode & 0x0FFFFFFFFFFFFFFF) | 0x4000000000000000;
+		nodesVec.push_back({newNode, 1});
+	}
+}
+
+
+bool Tile16Domain::same(std::uint64_t node1, std::uint64_t node2)
+{
+	return ((node1 ^ node2) & 0x0FFFFFFFFFFFFFFF) == 0;
+}
+
+void Tile16Domain::List::insert(std::uint64_t node)
+{
+	nodeSet.insert(node);
+}
+
+void Tile16Domain::List::remove(std::uint64_t node)
+{
+	nodeSet.erase(node);
+}
+
+bool Tile16Domain::List::contains(std::uint64_t node) const
+{
+	return (nodeSet.find(node) != nodeSet.end());
 }

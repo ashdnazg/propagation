@@ -5,6 +5,7 @@
 #include <cstdio>
 #include <deque>
 #include <queue>
+#include <unordered_set>
 #include <vector>
 #include "Domains.h"
 #include "Queues.h"
@@ -16,6 +17,7 @@ int main() {
 	//GridDomain domain(10,10);
 	const OctileDomain octile(10,10);
 	const PancakeDomain pancake(11);
+	const Tile16Domain tile;
 	//BFSSearcher<GridDomain> searcher(&domain);
 	//AStarSearcher<GridDomain, GridDomain::ManhattanDistance> searcher(&domain);
 	// {
@@ -30,13 +32,13 @@ int main() {
 		// printf("%f %d %d\n", res, searcher.expanded, searcher.generated);
 	// }
 	// printf("\n");
-	{
+	//{
 		//AStarSearcher<PancakeDomain, PancakeDomain::GAP<9>> searcher(&pancake);
-		MMSearcher<PancakeDomain, PancakeDomain::GAP<9>> searcher(&pancake);
+		//MMSearcher<PancakeDomain, PancakeDomain::GAP<0>> searcher(&pancake);
 		//BFSSearcher<PancakeDomain> searcher(&pancake);
-		unsigned res = searcher.search(0x0123456789Aull,0x492A8075316ull);
-		printf("%u %d %d\n", res, searcher.expanded, searcher.generated);
-		printf("compressCount: %llu\n", PancakeDomain::compressCount);
+		//unsigned res = searcher.search(0x0123456789Aull,0x492A8075316ull);
+		//printf("%u %d %d\n", res, searcher.expanded, searcher.generated);
+		//printf("compressCount: %llu\n", PancakeDomain::compressCount);
 		// typedef typename PancakeDomain::NodeType DomainNode;
 		// typedef typename PancakeDomain::CostType DomainCost;
 		// typedef Neighbor<DomainNode, DomainCost> DomainNeighbor;
@@ -53,6 +55,18 @@ int main() {
 		// PancakeDomain::compressPancake(0x2130);
 		// PancakeDomain::compressPancake(0x0213);
 		// PancakeDomain::compressPancake(0x3210);
+	//}
+	{
+		typedef typename Tile16Domain::NodeType DomainNode;
+		typedef typename Tile16Domain::CostType DomainCost;
+		typedef Neighbor<DomainNode, DomainCost> DomainNeighbor;
+		std::vector<DomainNeighbor> neighbors;
+		tile.getNeighbors(0x0FEDCBA980654321, neighbors);
+		for (DomainNeighbor n: neighbors) {
+			printf("0x%016llx\n", n.node);
+			printf("h: %u\n", Tile16Domain::ManhattanDistance::get(&tile, n.node, 0x0FEDCBA980654321));
+		}
+		printf("\n");
 	}
 	return 0;
 }

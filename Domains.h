@@ -104,15 +104,15 @@ public:
 			std::array<unsigned char, 13> legend;
 			for (unsigned char pancake = 0; pancake < d->size; ++pancake) {
 				const unsigned shift = pancake * 4;
-				legend[((node1 & (mask << shift)) >> shift)] = pancake;
+				legend[(node1 >> shift) & mask] = pancake;
 			}
 
 			unsigned h = 0;
 			unsigned char prevPancake = legend[(node2 & mask)];
-			for (unsigned pancake = 1; pancake < (d->size - M); ++pancake) {
+			for (unsigned pancake = 1; pancake < d->size; ++pancake) {
 				const unsigned shift = pancake * 4;
 				unsigned char nextPancake = legend[((node2 & (mask << shift)) >> shift)];
-				h += ((nextPancake + 1u - prevPancake) > 2u); // unsigned values, so this checks if abs(next - prev) > 1
+				h += (prevPancake >= M) * ((nextPancake + 1u - prevPancake) > 2u); // unsigned values, so this checks if abs(next - prev) > 1
 				prevPancake = nextPancake;
 			}
 
@@ -124,6 +124,65 @@ public:
 	static std::uint64_t compressCount;
 
 	unsigned size;
-private:
-	std::array<unsigned, 20> factorials;
+};
+
+class Tile16Domain
+{
+public:
+	Tile16Domain();
+	typedef std::uint64_t NodeType; //16 4 bit numbers, first 15 are the state and last one is bbRR where bb is the last direction of movement
+	typedef unsigned CostType;
+	class List
+	{
+	public:
+		void insert(std::uint64_t node);
+		void remove(std::uint64_t node);
+		bool contains(std::uint64_t node) const;
+		std::unordered_set<std::uint64_t> nodeSet;
+	};
+
+	struct ManhattanDistance {
+		static inline int get(const Tile16Domain* d, std::uint64_t node1, std::uint64_t node2) {
+			const std::uint64_t mask = 0xF;
+			std::array<unsigned char, 16> legend;
+			std::uint64_t lastTile = 0;
+
+			for (unsigned char pos = 0; pos < 15; ++pos) {
+				const unsigned shift = pos * 4;
+				const std::uint64_t tile = (node1 >> shift) & mask;
+				legend[tile] = pos;
+				lastTile = lastTile + tile;
+			}
+
+			lastTile = (120 - lastTile) & mask;
+			legend[lastTile] = 15;
+
+			lastTile = 0;
+			unsigned h = 0;
+			for (unsigned char pos = 0; pos < 15; ++pos) {
+				const unsigned shift = pos * 4;
+				const std::uint64_t tile = (node2 >> shift) & mask;
+				if (tile == 0)
+					continue;
+
+				const unsigned char targetPos = legend[tile];
+				lastTile = lastTile + tile;
+				h += std::abs((targetPos & 0x3) - (pos & 0x3));
+				h += std::abs(((targetPos >> 2) & 0x3) - ((pos >> 2) & 0x3));
+			}
+
+			lastTile = (120 - lastTile) & mask;
+			if (lastTile != 0) {
+				const unsigned char pos = 15;
+				const unsigned char targetPos = legend[lastTile];
+				h += std::abs((targetPos & 0x3) - (pos & 0x3));
+				h += std::abs(((targetPos >> 2) & 0x3) - ((pos >> 2) & 0x3));
+			}
+
+			return h;
+		}
+	};
+
+	void getNeighbors(std::uint64_t node, std::vector<Neighbor<std::uint64_t, unsigned>>& nodesVec) const;
+	static bool same(std::uint64_t node1, std::uint64_t node2);
 };
