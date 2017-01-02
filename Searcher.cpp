@@ -67,6 +67,12 @@ int main() {
 			printf("h: %u\n", Tile16Domain::ManhattanDistance::get(&tile, n.node, 0x0FEDCBA980654321));
 		}
 		printf("\n");
+
+		//AStarSearcher<Tile16Domain, Tile16Domain::ManhattanDistance> searcher(&tile);
+		MMSearcher<Tile16Domain, Tile16Domain::ManhattanDistance> searcher(&tile);
+		unsigned res = searcher.search(0x005E7C92836D4FA1,0x0FEDCBA987654321);
+		printf("%u %d %d\n", res, searcher.expanded, searcher.generated);
+		printf("h: %u\n", Tile16Domain::ManhattanDistance::get(&tile, 0x005E7C92836D4FA1, 0x0FEDCBA987654321));
 	}
 	return 0;
 }

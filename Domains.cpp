@@ -267,8 +267,8 @@ void Tile16Domain::getNeighbors(std::uint64_t node, std::vector<Neighbor<std::ui
 	lastTile = (120 - lastTile) & mask;
 	std::uint64_t reconstructed = (node & 0x0FFFFFFFFFFFFFFF) + (lastTile << 60);
 	std::uint64_t lastDir = (node >> 60);
-	printf("lastDir: 0x%016llx \n", lastDir);
-	printf("reconstructed: 0x%016llx \n", reconstructed);
+	// printf("lastDir: 0x%016llx \n", lastDir);
+	// printf("reconstructed: 0x%016llx \n", reconstructed);
 	if (lastDir != 0x1 && ((blankPos & 0x3) != 0x0)) {
 		unsigned movePos = blankPos - 1;
 		std::uint64_t movedTile = reconstructed & (mask << (movePos * 4));
@@ -314,15 +314,15 @@ bool Tile16Domain::same(std::uint64_t node1, std::uint64_t node2)
 
 void Tile16Domain::List::insert(std::uint64_t node)
 {
-	nodeSet.insert(node);
+	nodeSet.insert(node & 0x0FFFFFFFFFFFFFFF);
 }
 
 void Tile16Domain::List::remove(std::uint64_t node)
 {
-	nodeSet.erase(node);
+	nodeSet.erase(node & 0x0FFFFFFFFFFFFFFF);
 }
 
 bool Tile16Domain::List::contains(std::uint64_t node) const
 {
-	return (nodeSet.find(node) != nodeSet.end());
+	return (nodeSet.find(node & 0x0FFFFFFFFFFFFFFF) != nodeSet.end());
 }
