@@ -56,6 +56,11 @@ void GridDomain::List::remove(unsigned node)
 	bitField[node] = false;
 }
 
+void GridDomain::List::clear()
+{
+	bitField.clear();
+}
+
 
 bool GridDomain::List::contains(unsigned node) const
 {
@@ -127,6 +132,11 @@ void OctileDomain::List::remove(unsigned node)
 		return;
 
 	bitField[node] = false;
+}
+
+void OctileDomain::List::clear()
+{
+	bitField.clear();
 }
 
 bool OctileDomain::List::contains(unsigned node) const
@@ -228,13 +238,9 @@ void PancakeDomain::List::insert(std::uint64_t node)
 	bitField[compressed] = true;
 }
 
-void PancakeDomain::List::remove(std::uint64_t node)
+void PancakeDomain::List::clear()
 {
-	const unsigned compressed = PancakeDomain::compressPancake(node);
-	if (bitField.size() <= compressed)
-		return;
-
-	bitField[compressed] = false;
+	bitField.clear();
 }
 
 bool PancakeDomain::List::contains(std::uint64_t node) const
@@ -269,38 +275,44 @@ void Tile16Domain::getNeighbors(std::uint64_t node, std::vector<Neighbor<std::ui
 	std::uint64_t lastDir = (node >> 60);
 	// printf("lastDir: 0x%016llx \n", lastDir);
 	// printf("reconstructed: 0x%016llx \n", reconstructed);
-	if (lastDir != 0x1 && ((blankPos & 0x3) != 0x0)) {
+	//printf("expanded: 0x%016llx\n", reconstructed);
+	if (lastDir != 0x2 && ((blankPos & 0x3) != 0x0)) {
 		unsigned movePos = blankPos - 1;
 		std::uint64_t movedTile = reconstructed & (mask << (movePos * 4));
 		std::uint64_t newNode = reconstructed - movedTile;
 		newNode += (movedTile << 4);
+		//printf("generated: 0x%016llx moving: %u\n", newNode, (unsigned) (movedTile >> (movePos * 4)));
 		newNode = (newNode & 0x0FFFFFFFFFFFFFFF) | 0x1000000000000000;
+
 		nodesVec.push_back({newNode, 1});
 	}
 
-	if (lastDir != 0x2 && ((blankPos & 0x3) != 0x3)) {
+	if (lastDir != 0x1 && ((blankPos & 0x3) != 0x3)) {
 		unsigned movePos = blankPos + 1;
 		std::uint64_t movedTile = reconstructed & (mask << (movePos * 4));
 		std::uint64_t newNode = reconstructed - movedTile;
 		newNode += (movedTile >> 4);
+		//printf("generated: 0x%016llx moving: %u\n", newNode, (unsigned) (movedTile >> (movePos * 4)));
 		newNode = (newNode & 0x0FFFFFFFFFFFFFFF) | 0x2000000000000000;
 		nodesVec.push_back({newNode, 1});
 	}
 
-	if (lastDir != 0x3 && ((blankPos & 0xC) != 0x0)) {
+	if (lastDir != 0x4 && ((blankPos & 0xC) != 0x0)) {
 		unsigned movePos = blankPos - 4;
 		std::uint64_t movedTile = reconstructed & (mask << (movePos * 4));
 		std::uint64_t newNode = reconstructed - movedTile;
 		newNode += (movedTile << 16);
+		//printf("generated: 0x%016llx moving: %u\n", newNode, (unsigned) (movedTile >> (movePos * 4)));
 		newNode = (newNode & 0x0FFFFFFFFFFFFFFF) | 0x3000000000000000;
 		nodesVec.push_back({newNode, 1});
 	}
 
-	if (lastDir != 0x4 && ((blankPos & 0xC) != 0xC)) {
+	if (lastDir != 0x3 && ((blankPos & 0xC) != 0xC)) {
 		unsigned movePos = blankPos + 4;
 		std::uint64_t movedTile = reconstructed & (mask << (movePos * 4));
 		std::uint64_t newNode = reconstructed - movedTile;
 		newNode += (movedTile >> 16);
+		//printf("generated: 0x%016llx moving: %u\n", newNode, (unsigned) (movedTile >> (movePos * 4)));
 		newNode = (newNode & 0x0FFFFFFFFFFFFFFF) | 0x4000000000000000;
 		nodesVec.push_back({newNode, 1});
 	}
@@ -320,6 +332,11 @@ void Tile16Domain::List::insert(std::uint64_t node)
 void Tile16Domain::List::remove(std::uint64_t node)
 {
 	nodeSet.erase(node & 0x0FFFFFFFFFFFFFFF);
+}
+
+void Tile16Domain::List::clear()
+{
+	nodeSet.clear();
 }
 
 bool Tile16Domain::List::contains(std::uint64_t node) const

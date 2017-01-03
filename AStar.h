@@ -14,9 +14,8 @@ public:
 		DomainCost f;
 	};
 
-	AStarSearcher(const D* domain_) : expanded(0), generated(0), domain(domain_), bestFound(std::numeric_limits<DomainCost>::max()) { }
+	AStarSearcher(const D* domain_) : expanded(0), generated(0), domain(domain_) { }
 	void reset(DomainNode start_, DomainNode goal_);
-	bool isEmpty() const;
 	bool expand(Node& best);
 	void generate(DomainNode node, DomainCost distance);
 	void generate(std::vector<DomainNeighbor>& nodesVec, DomainCost distance);
@@ -30,6 +29,7 @@ private:
 	BucketQueue<Node, D> q;
 	const D* domain;
 	DomainCost bestFound;
+	DomainCost fMin;
 };
 
 template <class D, class H>
@@ -37,6 +37,8 @@ void AStarSearcher<D,H>::reset(DomainNode start_, DomainNode goal_)
 {
 	q.clear();
 	goal = goal_;
+	fMin = 0;
+	bestFound = std::numeric_limits<DomainCost>::max();
 
 	generate(start_, 0);
 }
@@ -49,7 +51,7 @@ void AStarSearcher<D,H>::generate(DomainNode node, DomainCost distance)
 
 	DomainCost h = H::get(domain, node, goal);
 	Node n = {node, distance, distance + h};
-	if (n.f < bestFound) {
+	if (n.f < bestFound && n.f >= fMin) {
 		if (D::same(node, goal)) {
 			bestFound = std::min(n.g, bestFound);
 		} else {
@@ -75,6 +77,11 @@ bool AStarSearcher<D,H>::expand(Node& best)
 	if (closedList.contains(best.domainNode))
 		return false;
 
+	if (best.f > fMin) {
+		printf("new f: %u\n", best.f);
+		fMin = best.f;
+		closedList.clear();
+	}
 	++expanded;
 	closedList.insert(best.domainNode);
 	return true;

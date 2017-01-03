@@ -22,6 +22,7 @@ public:
 	public:
 		void insert(unsigned node);
 		void remove(unsigned node);
+		void clear();
 		bool contains(unsigned node) const;
 		std::vector<bool> bitField;
 	};
@@ -55,6 +56,7 @@ public:
 	public:
 		void insert(unsigned node);
 		void remove(unsigned node);
+		void clear();
 		bool contains(unsigned node) const;
 		std::vector<bool> bitField;
 	};
@@ -91,6 +93,7 @@ public:
 	public:
 		void insert(std::uint64_t node);
 		void remove(std::uint64_t node);
+		void clear();
 		bool contains(std::uint64_t node) const;
 		std::vector<bool> bitField;
 	};
@@ -137,6 +140,7 @@ public:
 	public:
 		void insert(std::uint64_t node);
 		void remove(std::uint64_t node);
+		void clear();
 		bool contains(std::uint64_t node) const;
 		std::unordered_set<std::uint64_t> nodeSet;
 	};

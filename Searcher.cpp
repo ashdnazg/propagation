@@ -12,6 +12,7 @@
 #include "BFS.h"
 #include "AStar.h"
 #include "MM.h"
+#include "IDAStar.h"
 
 int main() {
 	//GridDomain domain(10,10);
@@ -69,9 +70,12 @@ int main() {
 		printf("\n");
 
 		//AStarSearcher<Tile16Domain, Tile16Domain::ManhattanDistance> searcher(&tile);
-		MMSearcher<Tile16Domain, Tile16Domain::ManhattanDistance> searcher(&tile);
-		unsigned res = searcher.search(0x005E7C92836D4FA1,0x0FEDCBA987654321);
-		printf("%u %d %d\n", res, searcher.expanded, searcher.generated);
+		//MMSearcher<Tile16Domain, Tile16Domain::ManhattanDistance> searcher(&tile);
+		//unsigned res = searcher.search(0x005E7C92836D4FA1,0x0FEDCBA987654321); // 35
+		IDAStarSearcher<Tile16Domain, Tile16Domain::ManhattanDistance> searcher(&tile);
+		unsigned res = searcher.search(0x06845273EABFD9C0,0x0FEDCBA987654321); // 80
+		//printf("%u %d %d\n", res, searcher.expanded, searcher.generated);
+		printf("%u\n", res);
 		printf("h: %u\n", Tile16Domain::ManhattanDistance::get(&tile, 0x005E7C92836D4FA1, 0x0FEDCBA987654321));
 	}
 	return 0;

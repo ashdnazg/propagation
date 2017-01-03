@@ -15,7 +15,6 @@ public:
 
 	BFSSearcher(const D* domain_) : expanded(0), generated(0), domain(domain_) { }
 	void reset(DomainNode start_, DomainNode goal_);
-	bool isEmpty() const;
 	BFSSearcher<D>::Node expand();
 	void generate(DomainNode node, DomainCost distance);
 	void generate(std::vector<DomainNeighbor>& nodesVec, DomainCost distance);

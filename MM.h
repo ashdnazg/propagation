@@ -20,9 +20,8 @@ public:
 		Direction dir;
 	};
 
-	MMSearcher(const D* domain_) : expanded(0), generated(0), domain(domain_), bestFound(std::numeric_limits<DomainCost>::max()) { }
+	MMSearcher(const D* domain_) : expanded(0), generated(0), domain(domain_) { }
 	void reset(DomainNode start_, DomainNode goal_);
-	bool isEmpty() const;
 	bool expand(Node& best);
 	void generate(DomainNode node, DomainCost distance, Direction dir);
 	void generate(std::vector<DomainNeighbor>& nodesVec, DomainCost distance, Direction dir);
@@ -39,6 +38,7 @@ private:
 	typename D::List openList[2];
 	typename D::List closedList[2];
 	BucketQueue<Node, D> q[2];
+	DomainCost fMin[2];
 	const D* domain;
 	DomainCost bestFound;
 };
@@ -50,6 +50,9 @@ void MMSearcher<D,H>::reset(DomainNode start_, DomainNode goal_)
 	q[BACK].clear();
 	goal = goal_;
 	start = start_;
+	fMin[FORWARD] = 0;
+	fMin[BACK] = 0;
+	bestFound = std::numeric_limits<DomainCost>::max();
 
 	generate(start_, 0, FORWARD);
 	generate(goal_, 0, BACK);
@@ -63,7 +66,7 @@ void MMSearcher<D,H>::generate(DomainNode node, DomainCost distance, Direction d
 
 	DomainCost h = H::get(domain, dir == FORWARD ? node : start, dir == FORWARD ? goal : node);
 	Node n = {node, distance, std::max(distance + h, 2 * distance), dir};
-	if (n.f < bestFound) {
+	if (n.f < bestFound && n.f >= fMin[dir]) {
 		if (openList[!dir].contains(node)) {
 			bestFound = std::min(n.g + q[!dir].getMinG(n), bestFound);
 		} else {
@@ -90,6 +93,12 @@ bool MMSearcher<D,H>::expand(Node& best)
 	q[d].pop();
 	if (closedList[d].contains(best.domainNode))
 		return false;
+
+	if (best.f > fMin[d]) {
+		printf("new f: %u in dir: %d\n", best.f, d);
+		fMin[d] = best.f;
+		closedList[d].clear();
+	}
 
 	++expanded;
 	closedList[d].insert(best.domainNode);
