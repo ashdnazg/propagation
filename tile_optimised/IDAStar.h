@@ -107,6 +107,8 @@ unsigned IDAStarTileSearcher::DFS(const Tiles& start, unsigned& maxF) {
 		}
 
 		const Operator& currentOp = opCache[currentNode.prevBlankPos][currentNode.blankPos];
+		currentNode.prevBlankPos = currentNode.blankPos;
+		currentNode.g++;
 		switch (currentOp.num) {
 			case 4: {
 				Node& newNode = stack[++sp];
@@ -114,14 +116,11 @@ unsigned IDAStarTileSearcher::DFS(const Tiles& start, unsigned& maxF) {
 				// printf("generating: %u=>%u\n", currentNode.blankPos, nextBlankPos);
 
 				newNode = currentNode;
-				newNode.prevBlankPos = newNode.blankPos;
 				newNode.blankPos = nextBlankPos;
-				newNode.g++;
 				const unsigned char tile = newNode.tiles[nextBlankPos];
 				newNode.tiles[nextBlankPos] = 0;
 				newNode.tiles[newNode.prevBlankPos] = tile;
-				newNode.f -= hCache[tile][nextBlankPos];
-				newNode.f += hCache[tile][newNode.prevBlankPos] + 1;
+				newNode.f += hCache[tile][newNode.prevBlankPos] + 1 - hCache[tile][nextBlankPos];
 				// printf("f: %u\n", newNode.f);
 			}
 			case 3: {
@@ -130,14 +129,11 @@ unsigned IDAStarTileSearcher::DFS(const Tiles& start, unsigned& maxF) {
 				// printf("generating: %u=>%u\n", currentNode.blankPos, nextBlankPos);
 
 				newNode = currentNode;
-				newNode.prevBlankPos = newNode.blankPos;
 				newNode.blankPos = nextBlankPos;
-				newNode.g++;
 				const unsigned char tile = newNode.tiles[nextBlankPos];
 				newNode.tiles[nextBlankPos] = 0;
 				newNode.tiles[newNode.prevBlankPos] = tile;
-				newNode.f -= hCache[tile][nextBlankPos];
-				newNode.f += hCache[tile][newNode.prevBlankPos] + 1;
+				newNode.f += hCache[tile][newNode.prevBlankPos] + 1 - hCache[tile][nextBlankPos];
 				// printf("f: %u\n", newNode.f);
 			}
 			case 2: {
@@ -146,36 +142,28 @@ unsigned IDAStarTileSearcher::DFS(const Tiles& start, unsigned& maxF) {
 				// printf("generating: %u=>%u\n", currentNode.blankPos, nextBlankPos);
 
 				newNode = currentNode;
-				newNode.prevBlankPos = newNode.blankPos;
 				newNode.blankPos = nextBlankPos;
-				newNode.g++;
 				const unsigned char tile = newNode.tiles[nextBlankPos];
 				newNode.tiles[nextBlankPos] = 0;
 				newNode.tiles[newNode.prevBlankPos] = tile;
-				newNode.f -= hCache[tile][nextBlankPos];
-				newNode.f += hCache[tile][newNode.prevBlankPos] + 1;
+				newNode.f += hCache[tile][newNode.prevBlankPos] + 1 - hCache[tile][nextBlankPos];
 				// printf("f: %u\n", newNode.f);
 			}
-			case 1: {
-				Node& newNode = stack[++sp];
+			default: {
 				const unsigned char nextBlankPos = currentOp.nextBlankPos[0];
 				// printf("generating: %u=>%u\n", currentNode.blankPos, nextBlankPos);
 
-				newNode = currentNode;
-				newNode.prevBlankPos = newNode.blankPos;
-				newNode.blankPos = nextBlankPos;
-				newNode.g++;
-				const unsigned char tile = newNode.tiles[nextBlankPos];
-				newNode.tiles[nextBlankPos] = 0;
-				newNode.tiles[newNode.prevBlankPos] = tile;
-				newNode.f -= hCache[tile][nextBlankPos];
-				newNode.f += hCache[tile][newNode.prevBlankPos] + 1;
+				currentNode.blankPos = nextBlankPos;
+				const unsigned char tile = currentNode.tiles[nextBlankPos];
+				currentNode.tiles[nextBlankPos] = 0;
+				currentNode.tiles[currentNode.prevBlankPos] = tile;
+				currentNode.f += hCache[tile][currentNode.prevBlankPos] + 1 - hCache[tile][nextBlankPos];
 				//printf("f: %u\n", newNode.f);
 			}
 		}
 
 		// mark node as passed so it's not expanded again:
-		currentNode.f = maxF + 1;
+		//currentNode.f = maxF + 1;
 	}
 
 	if (sp < 0)

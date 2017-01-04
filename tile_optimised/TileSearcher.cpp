@@ -4,10 +4,10 @@
 
 int main() {
 	const IDAStarTileSearcher::Tiles start {
-		14, 0,12,15,
-		 7, 9, 4, 6,
-		 1, 3,11, 8,
-		13, 5, 2,10
+		 0, 3, 9,10,
+		11, 7,15, 8,
+		 5,14, 4,12,
+		 1, 6, 2,13
 	};
 
 	unsigned result = IDAStarTileSearcher::search(start);
