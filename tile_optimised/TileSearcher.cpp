@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <chrono>
 #include <cinttypes>
 #include <cstdio>
 #include <cstdlib>
@@ -35,12 +36,15 @@ int main() {
 	// unsigned result = IDAStarTileSearcher::search(start);
 	// printf("C* = %u\n", result);
 	// printf("generated: %llu\n", IDAStarTileSearcher::generated);
-	for (unsigned i = 0; i < 10; ++i) {
+	for (unsigned i = 0; i < 1000; ++i) {
 		Tiles t;
 		createRandomState(t);
+		unsigned long before = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 		unsigned result = IDAStarTileSearcher::search(t);
+		unsigned long after = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 		printf("C* = %u\n", result);
 		printf("generated: %llu\n", IDAStarTileSearcher::generated);
+		printf("time: %lu\n", (unsigned long) (after - before));
 		IDAStarTileSearcher::generated = 0;
 	}
 	return 0;
