@@ -65,7 +65,7 @@ void MMSearcher<D,H>::generate(DomainNode node, DomainCost distance, Direction d
 		return;
 
 	DomainCost h = H::get(domain, dir == FORWARD ? node : start, dir == FORWARD ? goal : node);
-	Node n = {node, distance, std::max(distance + h, 2 * distance), dir};
+	Node n = {node, distance, distance + std::max(h, distance), dir};
 	if (n.f < bestFound && n.f >= fMin[dir]) {
 		if (openList[!dir].contains(node)) {
 			bestFound = std::min(n.g + q[!dir].getMinG(n), bestFound);
