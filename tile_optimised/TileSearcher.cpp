@@ -8,8 +8,8 @@
 #include <ctime>
 #include <vector>
 #include "Tiles.h"
-// #include "MIDAS.h"
-#include "IDAStar.h"
+#include "MIDAS.h"
+//#include "IDAStar.h"
 
 std::uint64_t IDAStarTileSearcher::generated = 0;
 

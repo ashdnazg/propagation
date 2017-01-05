@@ -6,6 +6,9 @@ public:
 	struct Node {
 		unsigned blankPos;
 		unsigned h;
+		unsigned hB;
+		//unsigned char prevBlankPos;
+		//unsigned char hF;
 	};
 	struct Operator {
 		unsigned num;
@@ -19,7 +22,8 @@ public:
 };
 
 unsigned IDAStarTileSearcher::DFS(const Tiles& start, unsigned& maxF) {
-	unsigned hCache[N][N] = {{0}};
+	unsigned hFCache[N][N] = {{0}};
+	unsigned hBCache[N][N] = {{0}};
 	Operator opCache[N][N] = {{0}}; //Sparse, but fast
 
 	Node stack[MAX_SOLUTION * MAX_DESCENDANTS];
@@ -31,14 +35,24 @@ unsigned IDAStarTileSearcher::DFS(const Tiles& start, unsigned& maxF) {
 	unsigned g = 0;
 
 
-	// Initializing hCache
+	// Initializing hFCache
 	{
+		std::array<char, N> startPos;
+		for (unsigned i = 0; i < N; ++i) {
+			startPos[start[i]] = i;
+		}
+
 		for (unsigned i = 1; i < N; ++i) {
-			char targetPos = i - 1;
+			char targetPosF = i - 1;
+			char targetPosB = startPos[i];
 			for (char pos = 0; pos < N; ++pos) {
-				char dx = std::abs(pos % ROW_SIZE - targetPos % ROW_SIZE);
-				char dy = std::abs(pos / ROW_SIZE - targetPos / ROW_SIZE);
-				hCache[i][(unsigned char)pos] = dx + dy;
+				char dxF = std::abs(pos % ROW_SIZE - targetPosF % ROW_SIZE);
+				char dyF = std::abs(pos / ROW_SIZE - targetPosF / ROW_SIZE);
+				hFCache[i][(unsigned char)pos] = dxF + dyF;
+
+				char dxB = std::abs(pos % ROW_SIZE - targetPosB % ROW_SIZE);
+				char dyB = std::abs(pos / ROW_SIZE - targetPosB / ROW_SIZE);
+				hBCache[i][(unsigned char)pos] = dxB + dyB;
 			}
 		}
 	}
@@ -76,12 +90,13 @@ unsigned IDAStarTileSearcher::DFS(const Tiles& start, unsigned& maxF) {
 			if (tile == 0) {
 				blankPos = pos;
 			} else {
-				h += hCache[tile][pos];
+				h += hFCache[tile][pos];
 			}
 			tiles[pos] = tile;
 		}
 		sp->blankPos = blankPos;
 		sp->h = h;
+		sp->hB = 0;
 		*bpsp = blankPos;
 
 		// printf("initial h: %u, maxF: %u\n", h, maxF);
@@ -106,7 +121,8 @@ unsigned IDAStarTileSearcher::DFS(const Tiles& start, unsigned& maxF) {
 		const unsigned prevBlankPos = *bpsp;
 		const unsigned tile = tiles[blankPos];
 		generated++;
-		const unsigned h = currentNode.h + hCache[tile][prevBlankPos] - hCache[tile][blankPos];
+		const unsigned h = currentNode.h + hFCache[tile][prevBlankPos] - hFCache[tile][blankPos];
+		const unsigned hB = currentNode.hB + hBCache[tile][prevBlankPos] - hBCache[tile][blankPos];
 		// printf("expanding: %u=>%u\n", prevBlankPos, currentNode.blankPos);
 
 
@@ -132,6 +148,7 @@ unsigned IDAStarTileSearcher::DFS(const Tiles& start, unsigned& maxF) {
 			case 4: {
 				++sp;
 				sp->h = h;
+				sp->hB = hB;
 				sp->blankPos = currentOp.nextBlankPos[3];
 				// printf("generating: %u=>%u\n", currentNode.blankPos, sp->blankPos);
 				// printf("h: %u g: %u\n", sp->h, g);
@@ -139,6 +156,7 @@ unsigned IDAStarTileSearcher::DFS(const Tiles& start, unsigned& maxF) {
 			case 3: {
 				++sp;
 				sp->h = h;
+				sp->hB = hB;
 				sp->blankPos = currentOp.nextBlankPos[2];
 				// printf("generating: %u=>%u\n", currentNode.blankPos, sp->blankPos);
 				// printf("h: %u g: %u\n", sp->h, g);
@@ -146,6 +164,7 @@ unsigned IDAStarTileSearcher::DFS(const Tiles& start, unsigned& maxF) {
 			case 2: {
 				++sp;
 				sp->h = h;
+				sp->hB = hB;
 				sp->blankPos = currentOp.nextBlankPos[1];
 				// printf("generating: %u=>%u\n", currentNode.blankPos, sp->blankPos);
 				// printf("h: %u g: %u\n", sp->h, g);
@@ -153,6 +172,7 @@ unsigned IDAStarTileSearcher::DFS(const Tiles& start, unsigned& maxF) {
 			default: {
 				++sp;
 				sp->h = h;
+				sp->hB = hB;
 				sp->blankPos = currentOp.nextBlankPos[0];
 				// printf("generating: %u=>%u\n", currentNode.blankPos, sp->blankPos);
 				// printf("h: %u g: %u\n", sp->h, g);
