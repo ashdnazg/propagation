@@ -15,16 +15,17 @@ public:
 		unsigned char nextBlankPos[MAX_DESCENDANTS];
 	};
 
-	static unsigned DFS(const Tiles& start, unsigned& maxF);
+	static unsigned DFS(const Tiles& start, const Tiles& goal, unsigned& maxF);
 	static unsigned search(const Tiles& start);
-	static std::uint64_t generated;
+	static std::uint64_t generated[MAX_SOLUTION + 10];
 
 };
 
-unsigned IDAStarTileSearcher::DFS(const Tiles& start, unsigned& maxF) {
+unsigned IDAStarTileSearcher::DFS(const Tiles& start, const Tiles& goal, unsigned& maxF) {
 	unsigned hFCache[N][N] = {{0}};
 	unsigned hBCache[N][N] = {{0}};
 	Operator opCache[N][N] = {{0}}; //Sparse, but fast
+	std::uint64_t nodeCount[MAX_SOLUTION][MAX_SOLUTION] = {{0}};
 
 	Node stack[MAX_SOLUTION * MAX_DESCENDANTS];
 	unsigned blankPosStack[MAX_SOLUTION + 10];
@@ -38,12 +39,14 @@ unsigned IDAStarTileSearcher::DFS(const Tiles& start, unsigned& maxF) {
 	// Initializing hFCache
 	{
 		std::array<char, N> startPos;
+		std::array<char, N> goalPos;
 		for (unsigned i = 0; i < N; ++i) {
 			startPos[start[i]] = i;
+			goalPos[goal[i]] = i;
 		}
 
 		for (unsigned i = 1; i < N; ++i) {
-			char targetPosF = i - 1;
+			char targetPosF = goalPos[i];
 			char targetPosB = startPos[i];
 			for (char pos = 0; pos < N; ++pos) {
 				char dxF = std::abs(pos % ROW_SIZE - targetPosF % ROW_SIZE);
@@ -99,11 +102,13 @@ unsigned IDAStarTileSearcher::DFS(const Tiles& start, unsigned& maxF) {
 		sp->hB = 0;
 		*bpsp = blankPos;
 
-		// printf("initial h: %u, maxF: %u\n", h, maxF);
 	}
 
 	if (maxF == 0)
 		maxF = sp->h;
+
+	printf("initial h: %u, maxF: %u\n", sp->h, maxF);
+	bool found = false;
 
 	while (sp >= stack) {
 		Node& currentNode = *sp;
@@ -120,7 +125,7 @@ unsigned IDAStarTileSearcher::DFS(const Tiles& start, unsigned& maxF) {
 
 		const unsigned prevBlankPos = *bpsp;
 		const unsigned tile = tiles[blankPos];
-		generated++;
+		generated[g]++;
 		const unsigned h = currentNode.h + hFCache[tile][prevBlankPos] - hFCache[tile][blankPos];
 		const unsigned hB = currentNode.hB + hBCache[tile][prevBlankPos] - hBCache[tile][blankPos];
 		// printf("expanding: %u=>%u\n", prevBlankPos, currentNode.blankPos);
@@ -132,10 +137,18 @@ unsigned IDAStarTileSearcher::DFS(const Tiles& start, unsigned& maxF) {
 			continue;
 		}
 
+		if ((g + g) == (maxF + 1) || (g + g) == maxF) {
+			nodeCount[h][hB]++;
+			--sp;
+			continue;
+		}
 
 		// current node is the goal
-		if (h == 0)
-			break;
+		if (h == 0) {
+			found = true;
+			--sp;
+			continue;
+		}
 
 		const Operator& currentOp = opCache[prevBlankPos][blankPos];
 		++bpsp;
@@ -182,22 +195,48 @@ unsigned IDAStarTileSearcher::DFS(const Tiles& start, unsigned& maxF) {
 		// mark node as passed so it's not expanded again:
 		currentNode.h = 0;
 	}
+	for (unsigned h = 0; h < MAX_SOLUTION; ++h) {
+		for (unsigned hB = 0; hB < MAX_SOLUTION; ++hB) {
+			std::uint64_t count = nodeCount[h][hB];
+			if (count > 0)
+				printf("hF: %u, hB: %u, count: %llu\n", h, hB, count);
+		}
+	}
 
-	if (sp < stack)
+	if (!found)
 		return maxF + 2;
 
 	return maxF;
 }
 
 unsigned IDAStarTileSearcher::search(const Tiles& start) {
-
+	Tiles goal {
+		1, 2, 3, 4,
+		5, 6, 7, 8,
+		9,10,11,12,
+		13,14,15,0
+	};
 	unsigned maxF = 0;
 	while (true) {
-		unsigned result = DFS(start, maxF);
+		unsigned result = DFS(start, goal, maxF);
 		if (result == maxF)
 			break;
+
+		if (maxF == 52)
+			break;
+
 		maxF = result;
 	}
+	std::uint64_t total = 0;
+	std::uint64_t half = 0;
+	for (unsigned i = 0; i < MAX_SOLUTION + 1; ++i) {
+		printf("generated(%u): %llu\n", i, generated[i]);
+		total += generated[i];
+		half += generated[i] * ((i * 2) < maxF);
+	}
+	printf("generated(half): %llu\n", half);
+	printf("generated(total): %llu\n", total);
 
 	return maxF;
 }
+std::uint64_t IDAStarTileSearcher::generated[MAX_SOLUTION + 10];

@@ -179,5 +179,7 @@ unsigned IDAStarTileSearcher::search(const Tiles& start) {
 		maxF = result;
 	}
 
+	printf("generated: %llu\n", generated);
 	return maxF;
 }
+std::uint64_t IDAStarTileSearcher::generated = 0;

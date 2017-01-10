@@ -11,8 +11,6 @@
 #include "MIDAS.h"
 //#include "IDAStar.h"
 
-std::uint64_t IDAStarTileSearcher::generated = 0;
-
 int main() {
 	const Tiles start {
 		 0, 3, 9,10,
@@ -37,7 +35,6 @@ int main() {
 
 	unsigned result = IDAStarTileSearcher::search(start);
 	printf("C* = %u\n", result);
-	printf("generated: %llu\n", IDAStarTileSearcher::generated);
 
 
 	std::srand(std::time(0));
