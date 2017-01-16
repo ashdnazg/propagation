@@ -3,18 +3,18 @@
 template<typename T, class H, int M, int K>
 class BloomFilter {
 public:
-	BloomFilter() : usingSet(true) {
+	BloomFilter() : hashOffset(0), usingSet(true), onesCount(0), count(0) {
 		filter.resize(M, false);
 	}
 
 
 	void bloomInsert(const T& object) {
-
-		for (int i = 0; i < K; ++i) {
+		for (unsigned i = hashOffset; i < hashOffset + K; ++i) {
 			const std::uint64_t b = H::get(object, i) % M;
 			onesCount += 1 - filter[b];
 			filter[b] = true;
 		}
+		++count;
 	}
 
 	void insert(const T& object) {
@@ -39,7 +39,7 @@ public:
 			return hashSet.find(object) != hashSet.end();
 		}
 
-		for (int i = 0; i < K; ++i) {
+		for (unsigned i = hashOffset; i < hashOffset + K; ++i) {
 			const std::uint64_t b = H::get(object, i) % M;
 			if (!filter[b]) {
 				return false;
@@ -60,14 +60,23 @@ public:
 		return hashSet.empty();
 	}
 
-	void clear() {
-		std::fill(filter.begin(), filter.end(), false);
-		usingSet = true;
-		hashSet.clear();
+	std::uint64_t getCount() const {
+		return usingSet ? hashSet.size() : count;
 	}
 
+	void clear() {
+		++hashOffset;
+		std::fill(filter.begin(), filter.end(), false);
+		onesCount = 0;
+		usingSet = true;
+		hashSet.clear();
+		count = 0;
+	}
+
+	unsigned hashOffset;
 	bool usingSet;
 	std::unordered_set<T, PancakeHasher> hashSet;
 	std::vector<bool> filter;
 	std::uint64_t onesCount;
+	std::uint64_t count;
 };

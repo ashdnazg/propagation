@@ -1,9 +1,8 @@
 #pragma once
 
-#define N 20
-#define ROW_SIZE 4
-#define MAX_SOLUTION 22
-#define MAX_DESCENDANTS 19
+#define N 15
+#define MAX_SOLUTION (N + 1)
+#define MAX_DESCENDANTS (N - 1)
 
 typedef std::array<unsigned char, N> Pancakes;
 
@@ -12,8 +11,14 @@ void createRandomState(Pancakes& pancakes) {
 		pancakes[i] = i;
 	}
 
-	for (int i = N - 1; i >= 0; ++i) {
+	for (int i = N - 1; i >= 0; --i) {
 		std::swap(pancakes[i], pancakes[std::rand() % (i + 1)]);
+	}
+}
+
+void printState(const Pancakes& pancakes) {
+	for (unsigned i = 0; i < N; ++i) {
+		printf("%u ", pancakes[i]);
 	}
 }
 

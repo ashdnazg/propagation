@@ -15,9 +15,14 @@
 #include "BDIDA.h"
 
 int main() {
-	const Pancakes start {
-		3, 9, 2, 5, 1, 7, 4, 8, 0, 6
-	};
+	// const Pancakes start {
+		// 3, 9, 2, 5, 1, 7, 4, 8, 0, 6
+	// };
+	Pancakes start;
+	createRandomState(start);
+	printf("Start: ");
+	printState(start);
+	printf("\n");
 
 	unsigned result = BDIDAStarPancakeSearcher::search(start);
 	printf("C* = %u\n", result);

@@ -10,7 +10,7 @@ public:
 		//unsigned h;
 	};
 
-	typedef BloomFilter<Pancakes, PancakeHasher, 1 << 24, 4> myBloomFilter;
+	typedef BloomFilter<Pancakes, PancakeHasher, 1 << 26, 5> myBloomFilter;
 
 	static unsigned DFS(const Pancakes& start, unsigned& maxF, myBloomFilter& writeBloomFilter, myBloomFilter& readBloomFilter, bool firstRun);
 	static unsigned search(const Pancakes& start);
@@ -115,17 +115,24 @@ unsigned BDIDAStarPancakeSearcher::search(const Pancakes& start) {
 		bool reverse = true;
 		while (true) {
 			if (reverse) {
-				printf("Doing reverse\n");
+				printf("Doing reverse with %llu items and saturation %f\n", forwardFilter.getCount(), forwardFilter.getSaturation());
 				backwardFilter.clear();
 				DFS(goal, backwardMaxF, backwardFilter, forwardFilter, false);
-
 			} else {
-				printf("Doing forward\n");
+				printf("Doing forward with %llu items and saturation %f\n", backwardFilter.getCount(), backwardFilter.getSaturation());
 				forwardFilter.clear();
 				DFS(start, forwardMaxF, forwardFilter, backwardFilter, false);
 			}
 			if (forwardFilter.isUsingSet() && backwardFilter.isUsingSet()) {
 				if (!forwardFilter.isSetEmpty() && !backwardFilter.isSetEmpty()) {
+					myBloomFilter& iterFilter = forwardFilter.getCount() > backwardFilter.getCount() ? backwardFilter : forwardFilter;
+					myBloomFilter& testFilter = forwardFilter.getCount() > backwardFilter.getCount() ? forwardFilter : backwardFilter;
+					for (const Pancakes& p: iterFilter.hashSet) {
+						if (testFilter.hashSet.find(p) != testFilter.hashSet.end()) {
+							printState(p);
+							printf("\n");
+						}
+					}
 					found = true;
 					result = backwardMaxF + forwardMaxF;
 				}
