@@ -238,6 +238,16 @@ void PancakeDomain::List::insert(std::uint64_t node)
 	bitField[compressed] = true;
 }
 
+void PancakeDomain::List::remove(std::uint64_t node)
+{
+	const unsigned compressed = PancakeDomain::compressPancake(node);
+	if (bitField.size() <= compressed)
+		return;
+
+	bitField[compressed] = false;
+}
+
+
 void PancakeDomain::List::clear()
 {
 	bitField.clear();

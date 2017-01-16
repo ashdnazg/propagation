@@ -122,6 +122,11 @@ public:
 			return h;
 		}
 	};
+	struct Dummy {
+		static inline unsigned get(const PancakeDomain* d, std::uint64_t node1, std::uint64_t node2) {
+			return 0;
+		}
+	};
 
 	static unsigned compressPancake(std::uint64_t node);
 	static std::uint64_t compressCount;
