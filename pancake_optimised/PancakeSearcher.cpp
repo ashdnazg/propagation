@@ -12,12 +12,16 @@
 #include "Pancakes.h"
 #include "BloomFilter.h"
 #include "IDAStar.h"
-#include "BDIDA.h"
+#include "BDIDAH.h"
 
 int main() {
 	// const Pancakes start {
-		// 3, 9, 2, 5, 1, 7, 4, 8, 0, 6
+		// 21, 1, 28, 38, 3, 33, 13, 30, 23, 19, 39, 25, 11, 7, 18, 8, 37, 32, 15, 12, 27, 6, 20, 22, 4, 10, 17, 36, 2, 0, 5, 14, 16, 31, 34, 26, 29, 35, 24, 9
 	// };
+	// const Pancakes start {
+		// 0, 3, 4, 1, 2
+	// };
+	std::srand(std::time(0));
 	Pancakes start;
 	createRandomState(start);
 	printf("Start: ");
@@ -28,7 +32,6 @@ int main() {
 	printf("C* = %u\n", result);
 
 
-	std::srand(std::time(0));
 	// for (unsigned i = 0; i < 1000; ++i) {
 		// Tiles t;
 		// createRandomState(t);

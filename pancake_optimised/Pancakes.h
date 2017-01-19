@@ -1,6 +1,6 @@
 #pragma once
 
-#define N 15
+#define N 40
 #define MAX_SOLUTION (N + 1)
 #define MAX_DESCENDANTS (N - 1)
 

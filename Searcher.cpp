@@ -3,6 +3,7 @@
 #include <cassert>
 #include <cinttypes>
 #include <cstdio>
+#include <cstring>
 #include <deque>
 #include <queue>
 #include <unordered_set>

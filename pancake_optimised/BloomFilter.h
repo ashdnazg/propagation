@@ -1,6 +1,6 @@
 #pragma once
 
-template<typename T, class H, int M, int K>
+template<typename T, class H, long long unsigned int M, int K>
 class BloomFilter {
 public:
 	BloomFilter() : hashOffset(0), usingSet(true), onesCount(0), count(0) {
@@ -21,7 +21,7 @@ public:
 		if (usingSet) {
 			hashSet.insert(object);
 			// if we're way too big, switch to bloom filter
-			if (hashSet.size() * sizeof(T) < (M >> 5)) {
+			if (hashSet.size() * sizeof(T) < (M >> 3)) {
 				return;
 			}
 			for (const T& o: hashSet) {
