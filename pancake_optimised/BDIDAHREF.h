@@ -9,37 +9,55 @@ public:
 		int flip;
 		//unsigned h;
 	};
+	typedef unsigned Cache[N][N];
 
-	typedef BloomFilter<Pancakes, PancakeHasher, 1LLU << 32, 1> myBloomFilter;
+	typedef BloomFilter<Pancakes, PancakeHasher, 1LLU << 28, 1> myBloomFilter;
 
-	static unsigned DFS(const Pancakes& start, const Pancakes& goal, unsigned maxF, unsigned maxG, myBloomFilter& writeBloomFilter, myBloomFilter& readBloomFilter, bool firstRun);
+	static unsigned DFS(const Pancakes& start, const Pancakes& goal, const Pancakes& reference, unsigned maxF, unsigned maxG, myBloomFilter& writeBloomFilter, myBloomFilter& readBloomFilter, bool firstRun);
 	static unsigned search(const Pancakes& start);
+	static unsigned initCache(Cache& cache, const Pancakes& start);
 	static std::uint64_t generated;
+	static std::uint64_t refHCounts[MAX_SOLUTION];
+	static std::uint64_t hitRefHCounts[MAX_SOLUTION];
 
 
 };
 
+unsigned BDIDAStarPancakeSearcher::initCache(Cache& cache, const Pancakes& start) {
+	unsigned h = N;
+	return h;
+}
 
-
-unsigned BDIDAStarPancakeSearcher::DFS(const Pancakes& start, const Pancakes& goal, unsigned maxF, unsigned maxG, myBloomFilter& writeBloomFilter, myBloomFilter& readBloomFilter, bool firstRun) {
+unsigned BDIDAStarPancakeSearcher::DFS(const Pancakes& start, const Pancakes& goal, const Pancakes& reference, unsigned maxF, unsigned maxG, myBloomFilter& writeBloomFilter, myBloomFilter& readBloomFilter, bool firstRun) {
 	Node stack[MAX_SOLUTION * MAX_DESCENDANTS];
 	Pancakes pancakes;
-	unsigned hCache[N][N];
-
+	Cache hCache;
+	Cache refHCache;
 
 	memset(hCache, 0, N * N * sizeof(**hCache));
+	memset(refHCache, 0, N * N * sizeof(**hCache));
+	memset(refHCounts, 0, MAX_SOLUTION * sizeof(*refHCounts));
+	memset(hitRefHCounts, 0, MAX_SOLUTION * sizeof(*hitRefHCounts));
 
 	for (int pos = 0; pos < N - 1; ++pos) {
 		hCache[goal[pos]][goal[pos + 1]] = 1;
 		hCache[goal[pos + 1]][goal[pos]] = 1;
 	}
 
+	for (int pos = 0; pos < N - 1; ++pos) {
+		refHCache[reference[pos]][reference[pos + 1]] = 1;
+		refHCache[reference[pos + 1]][reference[pos]] = 1;
+	}
+
 	unsigned h = N;
+	unsigned refH = N;
 
 	for (int pos = 0; pos < N - 1; ++pos) {
 		h -= hCache[start[pos]][start[pos + 1]];
+		refH -= refHCache[start[pos]][start[pos + 1]];
 	}
 	h -= start[N - 1] == goal[N - 1];
+	refH -= start[N - 1] == reference[N - 1];
 
 	Node* sp = stack;
 	int g = -1;
@@ -69,9 +87,13 @@ unsigned BDIDAStarPancakeSearcher::DFS(const Pancakes& start, const Pancakes& go
 			if (backflip < N) {
 				h -= hCache[pancakes[backflip]][pancakes[0]];
 				h += hCache[pancakes[backflip]][pancakes[backflip - 1]];
+				refH -= refHCache[pancakes[backflip]][pancakes[0]];
+				refH += refHCache[pancakes[backflip]][pancakes[backflip - 1]];
 			} else {
 				h -= pancakes[0] == goal[N - 1];
 				h += pancakes[N - 1] == goal[N - 1];
+				refH -= pancakes[0] == reference[N - 1];
+				refH += pancakes[N - 1] == reference[N - 1];
 			}
 			for (int pos = 0; pos < pivot; ++pos) {
 				std::swap(pancakes[pos], pancakes[backflip - pos - 1]);
@@ -89,9 +111,13 @@ unsigned BDIDAStarPancakeSearcher::DFS(const Pancakes& start, const Pancakes& go
 			if (flip < N) {
 				h -= hCache[pancakes[flip]][pancakes[0]];
 				h += hCache[pancakes[flip]][pancakes[flip - 1]];
+				refH -= refHCache[pancakes[flip]][pancakes[0]];
+				refH += refHCache[pancakes[flip]][pancakes[flip - 1]];
 			} else {
 				h -= pancakes[0] == goal[N - 1];
 				h += pancakes[N - 1] == goal[N - 1];
+				refH -= pancakes[0] == reference[N - 1];
+				refH += pancakes[N - 1] == reference[N - 1];
 			}
 			const int pivot = flip / 2;
 			for (int pos = 0; pos < pivot; ++pos) {
@@ -109,8 +135,10 @@ unsigned BDIDAStarPancakeSearcher::DFS(const Pancakes& start, const Pancakes& go
 
 		// don't expand if last layer (continue sends us straight to unroll)
 		if (unsigned(g) == maxG) {
+			++refHCounts[refH];
 			//printf("match candidate: g: %u h: %u\n", g, h);
 			if (firstRun || readBloomFilter.contains(pancakes)) {
+				++hitRefHCounts[refH];
 				writeBloomFilter.insert(pancakes);
 			}
 			continue;
@@ -141,6 +169,12 @@ unsigned BDIDAStarPancakeSearcher::DFS(const Pancakes& start, const Pancakes& go
 		}
 	}
 
+	for (unsigned i = 0; i < MAX_SOLUTION; ++i) {
+		if (refHCounts[i] != 0) {
+			printf("%u: %llu, %llu\n", i, refHCounts[i], hitRefHCounts[i]);
+		}
+	}
+
 	return maxF;
 }
 
@@ -154,21 +188,23 @@ unsigned BDIDAStarPancakeSearcher::search(const Pancakes& start) {
 	for (unsigned i = 0; i < N; ++i) {
 		goal[i] = i;
 	}
+	Pancakes reference;
+	createRandomState(reference);
 
 	while (true) {
 		printf("Starting iterations with maxF: %u\n", maxF);
-		DFS(start, goal, maxF, maxF / 2, forwardFilter, backwardFilter, true);
+		DFS(start, goal, reference, maxF, maxF / 2, forwardFilter, backwardFilter, true);
 		bool found = false;
 		bool reverse = true;
 		while (true) {
 			if (reverse) {
 				printf("Doing reverse with %llu items and saturation %f\n", forwardFilter.getCount(), forwardFilter.getSaturation());
 				backwardFilter.clear();
-				DFS(goal, start, maxF, (maxF + 1) / 2, backwardFilter, forwardFilter, false);
+				DFS(goal, start, reference, maxF, (maxF + 1) / 2, backwardFilter, forwardFilter, false);
 			} else {
 				printf("Doing forward with %llu items and saturation %f\n", backwardFilter.getCount(), backwardFilter.getSaturation());
 				forwardFilter.clear();
-				DFS(start, goal, maxF, maxF / 2, forwardFilter, backwardFilter, false);
+				DFS(start, goal, reference, maxF, maxF / 2, forwardFilter, backwardFilter, false);
 			}
 			if (forwardFilter.isUsingSet() && backwardFilter.isUsingSet()) {
 				if (!forwardFilter.isSetEmpty() && !backwardFilter.isSetEmpty()) {
@@ -204,3 +240,5 @@ unsigned BDIDAStarPancakeSearcher::search(const Pancakes& start) {
 	return maxF;
 }
 std::uint64_t BDIDAStarPancakeSearcher::generated = 0;
+std::uint64_t BDIDAStarPancakeSearcher::refHCounts[MAX_SOLUTION];
+std::uint64_t BDIDAStarPancakeSearcher::hitRefHCounts[MAX_SOLUTION];

@@ -66,9 +66,11 @@ public:
 
 	void clear() {
 		++hashOffset;
-		std::fill(filter.begin(), filter.end(), false);
-		onesCount = 0;
-		usingSet = true;
+		if (!usingSet) {
+			std::fill(filter.begin(), filter.end(), false);
+			onesCount = 0;
+			usingSet = true;
+		}
 		hashSet.clear();
 		count = 0;
 	}
