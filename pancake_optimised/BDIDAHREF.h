@@ -53,7 +53,7 @@ unsigned BDIDAStarPancakeSearcher::DFS(const Pancakes& start, const Pancakes& go
 
 
 	unsigned h = initCache(hCache, start, goal);
-	bool refInitialized = !firstRun;
+	bool refInitialized = !firstRun || targetH > 0;
 	unsigned refH = initCache(refHCache, start, refInitialized ? reference : goal);
 
 	Node* sp = stack;
@@ -140,12 +140,12 @@ unsigned BDIDAStarPancakeSearcher::DFS(const Pancakes& start, const Pancakes& go
 				for (unsigned pos = 0; pos < N; ++pos) {
 					reference[pos] = pancakes[pos];
 				}
-				//writeBloomFilter.insert(pancakes);
+				writeBloomFilter.insert(pancakes);
 				refH = initCache(refHCache, pancakes, reference);
 				++hitRefHCounts[refH];
 				refInitialized = true;
-				//++refHCounts[0];
-				//break;
+				++refHCounts[0];
+				break;
 			}
 			++refHCounts[refH];
 			//printf("match candidate: g: %u h: %u\n", g, h);
@@ -180,9 +180,9 @@ unsigned BDIDAStarPancakeSearcher::DFS(const Pancakes& start, const Pancakes& go
 				}
 				//printf("%u >? %u\n", std::abs(int(targetH) - int(tempRefH)), std::abs(int(maxG) - int(g) - 1));
 				//prune according to reference
-				// if (refInitialized && std::abs(int(targetH) - int(tempRefH)) > std::abs(int(maxG) - int(g) - 1)) {
-					// continue;
-				// }
+				if (refInitialized && std::abs(int(targetH) - int(tempRefH)) > std::abs(int(maxG) - int(g) - 1)) {
+					continue;
+				}
 
 				(++sp)->flip = pos;
 				++generated;
@@ -213,7 +213,7 @@ unsigned BDIDAStarPancakeSearcher::search(const Pancakes& start) {
 
 	for (maxF = 0; maxF < N + 2; ++maxF) {
 		bool found = false;
-		for (unsigned targetH = 0; targetH < 1; ++targetH) {
+		for (unsigned targetH = 0; targetH < maxF; ++targetH) {
 			printf("Starting iterations with maxF: %u targetH: %u\n", maxF, targetH);
 			forwardFilter.clear();
 			DFS(start, goal, reference, maxF, maxF / 2, targetH, forwardFilter, backwardFilter, true);
