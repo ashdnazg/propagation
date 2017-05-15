@@ -13,8 +13,9 @@
 #include "Pancakes.h"
 #include "BloomFilter.h"
 #include "IDAStar.h"
-//#include "BDIDAH.h"
-#include "BDIDAHREF.h"
+#include "BDIDAH.h"
+//#include "BDIDAHREF.h"
+#include "BDIDAHREFAnalyzer.h"
 
 int main() {
 	// const Pancakes start {
@@ -30,27 +31,28 @@ int main() {
 		// 5, 0, 3, 1, 2, 4
 	// };
 
-	// std::srand(std::time(0));
-	Pancakes start;
-	createRandomState(start);
-	printf("Start: ");
-	printState(start);
-	printf("\n");
+	std::srand(std::time(0));
+	// Pancakes start;
+	// createRandomState(start);
+	// printf("Start: ");
+	// printState(start);
+	// printf("\n");
 
-	unsigned result = BDIDAStarPancakeSearcher::search(start);
-	printf("C* = %u\n", result);
+	// unsigned result = BDIDAStarPancakeSearcher::search(start);
+	// printf("C* = %u\n", result);
 
 
-	// for (unsigned i = 0; i < 1000; ++i) {
-		// Tiles t;
-		// createRandomState(t);
-		// unsigned long before = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-		// unsigned result = IDAStarTileSearcher::search(t);
-		// unsigned long after = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-		// printf("C* = %u\n", result);
-		// printf("generated: %llu\n", IDAStarTileSearcher::generated);
-		// printf("time: %lu\n", (unsigned long) (after - before));
-		// IDAStarTileSearcher::generated = 0;
-	// }
+	for (unsigned i = 0; i < 1000; ++i) {
+		printf("Instance %u\n", i);
+		Pancakes p;
+		createRandomState(p);
+		unsigned long before = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+		unsigned result = BDIDAStarPancakeSearcher::search(p);
+		unsigned long after = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+		printf("C* = %u\n", result);
+		BloomPancakeSearcher::search(p);
+		//printf("generated: %llu\n", BDIDAStarPancakeSearcher::generated);
+		printf("time: %lu\n", (unsigned long) (after - before));
+	}
 	return 0;
 }

@@ -1,6 +1,6 @@
 #pragma once
 
-#define N 86
+#define N 40
 #define MAX_SOLUTION (N + 1)
 #define MAX_DESCENDANTS (N - 1)
 
@@ -28,7 +28,7 @@ struct PancakeHasher {
 		std::uint64_t out[2];
 		MurmurHash3_x64_128(&pancakes, N, n * 12582917, out);
 
-		return out[n % 1];
+		return out[n % 2];
 	}
 
 	size_t operator()(const Pancakes& pancakes) const {

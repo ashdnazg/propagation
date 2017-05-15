@@ -1,6 +1,6 @@
 #pragma once
 
-class BDIDAStarPancakeSearcher
+class BloomPancakeSearcher
 {
 public:
 
@@ -21,7 +21,7 @@ public:
 
 
 
-unsigned BDIDAStarPancakeSearcher::DFS(const Pancakes& start, const Pancakes& goal, unsigned maxF, unsigned maxG, myBloomFilter& writeBloomFilter, myBloomFilter& readBloomFilter, bool firstRun) {
+unsigned BloomPancakeSearcher::DFS(const Pancakes& start, const Pancakes& goal, unsigned maxF, unsigned maxG, myBloomFilter& writeBloomFilter, myBloomFilter& readBloomFilter, bool firstRun) {
 	Node stack[MAX_SOLUTION * MAX_DESCENDANTS];
 	Pancakes pancakes;
 	unsigned hCache[N][N];
@@ -52,7 +52,7 @@ unsigned BDIDAStarPancakeSearcher::DFS(const Pancakes& start, const Pancakes& go
 		//sp->h = h;
 	}
 	if (maxF < h) {
-		printf("breaking since initial h was: %u\n", h);
+		//printf("breaking since initial h was: %u\n", h);
 		return maxF;
 	}
 
@@ -144,7 +144,8 @@ unsigned BDIDAStarPancakeSearcher::DFS(const Pancakes& start, const Pancakes& go
 	return maxF;
 }
 
-unsigned BDIDAStarPancakeSearcher::search(const Pancakes& start) {
+unsigned BloomPancakeSearcher::search(const Pancakes& start) {
+	generated = 0;
 	Pancakes goal;
 	unsigned maxF = 0;
 	myBloomFilter forwardFilter;
@@ -154,37 +155,39 @@ unsigned BDIDAStarPancakeSearcher::search(const Pancakes& start) {
 	for (unsigned i = 0; i < N; ++i) {
 		goal[i] = i;
 	}
-
+	std::uint64_t IDAGen;
 	while (true) {
-		printf("Starting iterations with maxF: %u\n", maxF);
+		// printf("Starting iterations with maxF: %u\n", maxF);
+		std::uint64_t preGenerated = generated;
 		DFS(start, goal, maxF, maxF / 2, forwardFilter, backwardFilter, true);
+		IDAGen = generated - preGenerated;
 		bool found = false;
 		bool reverse = true;
 		while (true) {
 			if (reverse) {
-				printf("Doing reverse with %llu items and saturation %f\n", forwardFilter.getCount(), forwardFilter.getSaturation());
+				// printf("Doing reverse with %llu items and saturation %f\n", forwardFilter.getCount(), forwardFilter.getSaturation());
 				backwardFilter.clear();
 				DFS(goal, start, maxF, (maxF + 1) / 2, backwardFilter, forwardFilter, false);
 			} else {
-				printf("Doing forward with %llu items and saturation %f\n", backwardFilter.getCount(), backwardFilter.getSaturation());
+				// printf("Doing forward with %llu items and saturation %f\n", backwardFilter.getCount(), backwardFilter.getSaturation());
 				forwardFilter.clear();
 				DFS(start, goal, maxF, maxF / 2, forwardFilter, backwardFilter, false);
 			}
 			if (forwardFilter.isUsingSet() && backwardFilter.isUsingSet()) {
 				if (!forwardFilter.isSetEmpty() && !backwardFilter.isSetEmpty()) {
-					myBloomFilter& iterFilter = forwardFilter.getCount() > backwardFilter.getCount() ? backwardFilter : forwardFilter;
-					myBloomFilter& testFilter = forwardFilter.getCount() > backwardFilter.getCount() ? forwardFilter : backwardFilter;
-					int count = 0;
-					for (const Pancakes& p: iterFilter.hashSet) {
-						if (testFilter.hashSet.find(p) != testFilter.hashSet.end()) {
-							printState(p);
-							printf("\n");
-							count++;
-						}
-						if (count > 10) {
-							break;
-						}
-					}
+					// myBloomFilter& iterFilter = forwardFilter.getCount() > backwardFilter.getCount() ? backwardFilter : forwardFilter;
+					// myBloomFilter& testFilter = forwardFilter.getCount() > backwardFilter.getCount() ? forwardFilter : backwardFilter;
+					// int count = 0;
+					// for (const Pancakes& p: iterFilter.hashSet) {
+						// if (testFilter.hashSet.find(p) != testFilter.hashSet.end()) {
+							// printState(p);
+							// printf("\n");
+							// count++;
+						// }
+						// if (count > 10) {
+							// break;
+						// }
+					// }
 					found = true;
 				}
 				break;
@@ -199,8 +202,8 @@ unsigned BDIDAStarPancakeSearcher::search(const Pancakes& start) {
 		maxF++;
 		forwardFilter.clear();
 	}
-
-	printf("generated: %llu\n", generated);
+	printf("IDA*: %llu\n", IDAGen);
+	//printf("generated: %llu\n", generated);
 	return maxF;
 }
-std::uint64_t BDIDAStarPancakeSearcher::generated = 0;
+std::uint64_t BloomPancakeSearcher::generated = 0;
