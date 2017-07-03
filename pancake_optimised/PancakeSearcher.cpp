@@ -12,10 +12,12 @@
 #include "MurmurHash3.h"
 #include "Pancakes.h"
 #include "BloomFilter.h"
+#include "HashSet.h"
 #include "IDAStar.h"
 #include "BDIDAH.h"
-//#include "BDIDAHREF.h"
-#include "BDIDAHREFAnalyzer.h"
+#include "BDIDAHREF.h"
+//#include "BDIDAHREFAnalyzer.h"
+#include "CA.h"
 
 int main() {
 	// const Pancakes start {
@@ -31,15 +33,17 @@ int main() {
 		// 5, 0, 3, 1, 2, 4
 	// };
 
-	std::srand(std::time(0));
+	// std::srand(std::time(0));
 	// Pancakes start;
 	// createRandomState(start);
 	// printf("Start: ");
 	// printState(start);
 	// printf("\n");
 
-	// unsigned result = BDIDAStarPancakeSearcher::search(start);
+	// unsigned result = CAPancakeSearcher::search(start);
+	// unsigned result2 = BDIDAStarPancakeSearcher::search(start);
 	// printf("C* = %u\n", result);
+	// printf("C*(2) = %u\n", result2);
 
 
 	for (unsigned i = 0; i < 1000; ++i) {
@@ -49,10 +53,19 @@ int main() {
 		unsigned long before = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 		unsigned result = BDIDAStarPancakeSearcher::search(p);
 		unsigned long after = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-		printf("C* = %u\n", result);
-		BloomPancakeSearcher::search(p);
-		//printf("generated: %llu\n", BDIDAStarPancakeSearcher::generated);
-		printf("time: %lu\n", (unsigned long) (after - before));
+
+		unsigned long before2 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+		unsigned result2 = CAPancakeSearcher::search(p);
+		unsigned long after2 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+		printf("C* (ref) = %u\n", result);
+		printf("C* (ca) = %u\n", result2);
+		if (result2 != result) {
+			printf("ERRRORERRORERROR\n");
+			exit(1);
+		}
+
+		printf("time (ref): %lu\n", (unsigned long) (after - before));
+		printf("time (ca): %lu\n", (unsigned long) (after2 - before2));
 	}
 	return 0;
 }

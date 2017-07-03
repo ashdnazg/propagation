@@ -11,7 +11,7 @@ public:
 	};
 	typedef unsigned Cache[N][N];
 
-	typedef BloomFilter<Pancakes, PancakeHasher, 1LLU << 28, 1> myBloomFilter;
+	typedef BloomFilter<Pancakes, PancakeHasher, 1LLU << 32, 1> myBloomFilter;
 
 	static unsigned DFS(const Pancakes& start, const Pancakes& goal, Pancakes& reference, unsigned maxF, unsigned maxG, unsigned targetH, myBloomFilter& writeBloomFilter, myBloomFilter& readBloomFilter, bool firstRun);
 	static unsigned search(const Pancakes& start);

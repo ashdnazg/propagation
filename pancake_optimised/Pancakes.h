@@ -1,7 +1,7 @@
 #pragma once
 
 #define N 40
-#define MAX_SOLUTION (N + 1)
+#define MAX_SOLUTION (2 * N)
 #define MAX_DESCENDANTS (N - 1)
 
 typedef std::array<unsigned char, N> Pancakes;
