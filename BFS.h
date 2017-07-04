@@ -13,7 +13,7 @@ public:
 		DomainCost g;
 	};
 
-	BFSSearcher(const D* domain_) : expanded(0), generated(0), domain(domain_) { }
+	BFSSearcher(const D& domain_) : expanded(0), generated(0), domain(domain_) { }
 	void reset(DomainNode start_, DomainNode goal_);
 	BFSSearcher<D>::Node expand();
 	void generate(DomainNode node, DomainCost distance);
@@ -21,14 +21,14 @@ public:
 	DomainCost search(DomainNode start, DomainNode goal);
 
 
-	unsigned expanded;
-	unsigned generated;
+	std::uint64_t expanded;
+	std::uint64_t generated;
 private:
 	DomainNode goal;
 	typename D::List openList;
 	typename D::List closedList;
 	std::deque<Node> q;
-	const D* domain;
+	const D& domain;
 };
 
 template <class D>
@@ -36,7 +36,8 @@ void BFSSearcher<D>::reset(DomainNode start_, DomainNode goal_)
 {
 	q.clear();
 	goal = goal_;
-
+	expanded = 0;
+	generated = 0;
 	generate(start_, 0);
 }
 
@@ -83,7 +84,7 @@ typename BFSSearcher<D>::DomainCost BFSSearcher<D>::search(DomainNode start_, Do
 			return best.g;
 
 		tempNodes.clear();
-		domain->getNeighbors(best.domainNode, tempNodes);
+		domain.getNeighbors(best.domainNode, tempNodes);
 		generate(tempNodes, best.g);
 	}
 	return -1;

@@ -20,18 +20,18 @@ public:
 		Direction dir;
 	};
 
-	MMSearcher(const D* domain_) : expanded(0), generated(0), domain(domain_) { }
-	void reset(DomainNode start_, DomainNode goal_);
+	MMSearcher(const D& domain_) : expanded(0), generated(0), domain(domain_) { }
+	void reset(const DomainNode& start_, const DomainNode& goal_);
 	bool expand(Node& best);
-	void generate(DomainNode node, DomainCost distance, Direction dir);
+	void generate(const DomainNode& node, DomainCost distance, Direction dir);
 	void generate(std::vector<DomainNeighbor>& nodesVec, DomainCost distance, Direction dir);
-	DomainCost search(DomainNode start, DomainNode goal);
+	DomainCost search(const DomainNode& start, const DomainNode& goal);
 	static inline bool compareNodes(const Node& x, const Node& y) {
 		return x.f == y.f ? (x.g < y.g) : (x.f > y.f);
 	}
 
-	unsigned expanded;
-	unsigned generated;
+	std::uint64_t expanded;
+	std::uint64_t generated;
 private:
 	DomainNode start;
 	DomainNode goal;
@@ -39,12 +39,12 @@ private:
 	typename D::List closedList[2];
 	BucketQueue<Node, D> q[2];
 	DomainCost fMin[2];
-	const D* domain;
+	const D& domain;
 	DomainCost bestFound;
 };
 
 template <class D, class H>
-void MMSearcher<D,H>::reset(DomainNode start_, DomainNode goal_)
+void MMSearcher<D,H>::reset(const DomainNode& start_, const DomainNode& goal_)
 {
 	q[FORWARD].clear();
 	q[BACK].clear();
@@ -52,6 +52,8 @@ void MMSearcher<D,H>::reset(DomainNode start_, DomainNode goal_)
 	start = start_;
 	fMin[FORWARD] = 0;
 	fMin[BACK] = 0;
+	expanded = 0;
+	generated = 0;
 	bestFound = std::numeric_limits<DomainCost>::max();
 
 	generate(start_, 0, FORWARD);
@@ -59,7 +61,7 @@ void MMSearcher<D,H>::reset(DomainNode start_, DomainNode goal_)
 }
 
 template <class D, class H>
-void MMSearcher<D,H>::generate(DomainNode node, DomainCost distance, Direction dir)
+void MMSearcher<D,H>::generate(const DomainNode& node, DomainCost distance, Direction dir)
 {
 	if (closedList[dir].contains(node))
 		return;
@@ -108,7 +110,7 @@ bool MMSearcher<D,H>::expand(Node& best)
 
 
 template<class D, class H>
-typename MMSearcher<D,H>::DomainCost MMSearcher<D,H>::search(DomainNode start_, DomainNode goal_) {
+typename MMSearcher<D,H>::DomainCost MMSearcher<D,H>::search(const DomainNode& start_, const DomainNode& goal_) {
 	std::vector<DomainNeighbor> tempNodes;
 	reset(start_, goal_);
 
@@ -122,7 +124,7 @@ typename MMSearcher<D,H>::DomainCost MMSearcher<D,H>::search(DomainNode start_, 
 			continue;
 
 		tempNodes.clear();
-		domain->getNeighbors(best.domainNode, tempNodes);
+		domain.getNeighbors(best.domainNode, tempNodes);
 		generate(tempNodes, best.g, best.dir);
 	}
 	return bestFound;
