@@ -10,7 +10,7 @@ public:
 		//unsigned h;
 	};
 
-	typedef HashSet<Pancakes, PancakeHasher, 1 << 5> myHashSet;
+	typedef HashSet<Pancakes, PancakeHasher, 1 << 31> myHashSet;
 	typedef unsigned Cache[N][N];
 
 	static bool CASearch(const Pancakes& start, const Pancakes& goal, unsigned thF, unsigned thB);
@@ -18,6 +18,7 @@ public:
 	static unsigned search(const Pancakes& start);
 	static unsigned initCache(Cache& cache, const Pancakes& start, const Pancakes& goal);
 	static std::uint64_t generated;
+	static std::uint64_t memoryUsed;
 };
 
 
@@ -45,13 +46,6 @@ unsigned CAPancakeSearcher::backwardSearch(const Pancakes& start, const Pancakes
 	Pancakes pancakes;
 	Pancakes legend;
 
-
-
-	for (int pos = 0; pos < N - 1; ++pos) {
-	}
-
-
-
 	Node* sp = stack;
 	int g = -1;
 	unsigned h = N;
@@ -72,7 +66,7 @@ unsigned CAPancakeSearcher::backwardSearch(const Pancakes& start, const Pancakes
 		h -= start[N - 1] == goal[N - 1];
 
 		if (maxF < h) {
-			printf("breaking backward since initial h was: %u\n", h);
+			//printf("breaking backward since initial h was: %u\n", h);
 			return false;
 		}
 	}
@@ -178,7 +172,7 @@ bool CAPancakeSearcher::CASearch(const Pancakes& start, const Pancakes& goal, un
 	unsigned maxF = thF + thB;
 
 	if (maxF < h) {
-		printf("breaking forward since initial h was: %u\n", h);
+		//printf("breaking forward since initial h was: %u\n", h);
 		return false;
 	}
 
@@ -218,6 +212,18 @@ bool CAPancakeSearcher::CASearch(const Pancakes& start, const Pancakes& goal, un
 			if (g == nextCADepth) {
 				nextCommonAncestor = pancakes;
 				--nextCADepth;
+			}
+
+			if ((nextCADepth < int(thF >> 1)) && !hashSet.isEmpty()) {
+				//printf("doing backward search with ca depth: %d\n", caDepth);
+				const bool found = backwardSearch(goal, commonAncestor, maxF - caDepth, thB, hashSet, hCache);
+				if (found) {
+					return true;
+				}
+				nextCADepth = -2;
+				caDepth = -2;
+				memoryUsed = std::max(memoryUsed, hashSet.getCount());
+				hashSet.clear();
 			}
 
 			--sp;
@@ -269,6 +275,7 @@ bool CAPancakeSearcher::CASearch(const Pancakes& start, const Pancakes& goal, un
 				}
 				nextCADepth = -2;
 				caDepth = -2;
+				memoryUsed = std::max(memoryUsed, hashSet.getCount());
 				hashSet.clear();
 			}
 			continue;
@@ -301,6 +308,7 @@ bool CAPancakeSearcher::CASearch(const Pancakes& start, const Pancakes& goal, un
 
 	if (!hashSet.isEmpty()) {
 		printf("doing final backward search with ca depth: %d\n", caDepth);
+		memoryUsed = std::max(memoryUsed, hashSet.getCount());
 		return backwardSearch(goal, commonAncestor, maxF - caDepth, thB, hashSet, hCache);
 	}
 
@@ -309,6 +317,7 @@ bool CAPancakeSearcher::CASearch(const Pancakes& start, const Pancakes& goal, un
 
 unsigned CAPancakeSearcher::search(const Pancakes& start) {
 	generated = 0;
+	memoryUsed = 0;
 	Pancakes goal;
 	unsigned thF = 0;
 	unsigned thB = 0;
@@ -316,7 +325,7 @@ unsigned CAPancakeSearcher::search(const Pancakes& start) {
 		goal[i] = i;
 	}
 	while (true) {
-		printf("Starting iteration with thF: %u, thB: %u\n", thF, thB);
+		//printf("Starting iteration with thF: %u, thB: %u\n", thF, thB);
 		bool found = CASearch(start, goal, thF, thB);
 		if (found) {
 			return thF + thB;
@@ -330,4 +339,6 @@ unsigned CAPancakeSearcher::search(const Pancakes& start) {
 	}
 	return 0;
 }
+
 std::uint64_t CAPancakeSearcher::generated = 0;
+std::uint64_t CAPancakeSearcher::memoryUsed = 0;
