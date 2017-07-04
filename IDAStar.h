@@ -34,7 +34,7 @@ void IDAStarSearcher<D,H>::reset(DomainNode start_, DomainNode goal_)
 	goal = goal_;
 	currentF = H::get(domain, start_, goal_);
 	expanded = 0;
-	generated = 1; // the start is always generated
+	generated = 0; // the start is always generated
 }
 
 template<class D, class H>
@@ -42,18 +42,33 @@ typename IDAStarSearcher<D,H>::DomainCost IDAStarSearcher<D,H>::DFS(const Node& 
 	DomainCost result = std::numeric_limits<DomainCost>::max();
 	std::vector<DomainNeighbor> nodesVec;
 	expanded++;
+	// printf("expanding: ");
+	// D::printState(root.domainNode);
+	// printf("\n");
 	domain.getNeighbors(root.domainNode, nodesVec);
 	for (const DomainNeighbor& n: nodesVec) {
 		DomainCost h = H::get(domain, n.node, goal);
 		Node neighbor = {n.node, root.g + n.cost, root.g + n.cost + h};
 		generated++;
+		// printf("generating: ");
+		// D::printState(n.node);
+		// printf("in depth: %u\n", (unsigned) root.g + n.cost);
 		DomainCost tempResult;
 		if (neighbor.f > currentF) {
 			tempResult = neighbor.f;
 		} else if (D::same(n.node, goal)) {
+			// printf("solution node:");
+			// D::printState(n.node);
+			// printf("in depth: %u\n", (unsigned) root.g + n.cost);
 			tempResult = neighbor.g;
 		} else {
 			tempResult = DFS(neighbor);
+		}
+		if (tempResult == currentF) {
+			// printf("solution node:");
+			// D::printState(n.node);
+			// printf("in depth: %u\n", (unsigned) root.g + n.cost);
+			return currentF;
 		}
 		result = std::min(result, tempResult);
 	}
@@ -62,16 +77,16 @@ typename IDAStarSearcher<D,H>::DomainCost IDAStarSearcher<D,H>::DFS(const Node& 
 
 template<class D, class H>
 typename IDAStarSearcher<D,H>::DomainCost IDAStarSearcher<D,H>::search(DomainNode start_, DomainNode goal_) {
-	std::vector<DomainNeighbor> tempNodes;
 	reset(start_, goal_);
 	Node root = {start_, 0, currentF};
+	++generated;
 	while (true) {
+		printf("currentF: %u\n", currentF);
 		DomainCost result = DFS(root);
 		if (result == currentF || result == std::numeric_limits<DomainCost>::max())
 			return result;
 
 		currentF = result;
-		printf("currentF: %u\n", currentF);
 	}
 	return std::numeric_limits<DomainCost>::max();
 }

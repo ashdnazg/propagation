@@ -67,7 +67,7 @@ class BucketQueue {
 public:
 	struct Bucket {
 		typename D::CostType f;
-		PriorityQueue<T, D, lessG<T>> nodes;
+		PriorityQueue<T, D, moreG<T>> nodes;
 	};
 	inline bool empty() const { return buckets.empty(); }
 	inline void clear() { buckets.clear(); }

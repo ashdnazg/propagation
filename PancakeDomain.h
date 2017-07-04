@@ -29,9 +29,11 @@ public:
 	class List {
 	public:
 		void insert(const NodeType& node);
-		void remove(const NodeType& node);
+		void erase(const NodeType& node);
 		void clear();
 		bool contains(const NodeType& node) const;
+		bool empty() const;
+		size_t size() const;
 		std::unordered_set<std::array<unsigned char, N>, Hasher> nodeSet;
 	};
 	void getNeighbors(const NodeType& node, std::vector<Neighbor<NodeType, CostType>>& nodesVec) const;
@@ -135,7 +137,7 @@ void PancakeDomain<N>::List::insert(const NodeType& node)
 }
 
 template<int N>
-void PancakeDomain<N>::List::remove(const NodeType& node)
+void PancakeDomain<N>::List::erase(const NodeType& node)
 {
 	nodeSet.erase(node.pancakes);
 }
@@ -150,4 +152,16 @@ template<int N>
 bool PancakeDomain<N>::List::contains(const NodeType& node) const
 {
 	return (nodeSet.find(node.pancakes) != nodeSet.end());
+}
+
+template<int N>
+bool PancakeDomain<N>::List::empty() const
+{
+	return nodeSet.empty();
+}
+
+template<int N>
+size_t PancakeDomain<N>::List::size() const
+{
+	return nodeSet.size();
 }

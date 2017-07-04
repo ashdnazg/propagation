@@ -104,7 +104,7 @@ bool MMSearcher<D,H>::expand(Node& best)
 
 	++expanded;
 	closedList[d].insert(best.domainNode);
-	openList[d].remove(best.domainNode);
+	openList[d].erase(best.domainNode);
 	return true;
 }
 
