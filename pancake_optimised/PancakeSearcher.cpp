@@ -33,39 +33,46 @@ int main() {
 		// 5, 0, 3, 1, 2, 4
 	// };
 
-	// std::srand(std::time(0));
-	// Pancakes start;
-	// createRandomState(start);
-	// printf("Start: ");
-	// printState(start);
-	// printf("\n");
+	std::srand(std::time(0));
+	Pancakes start;
+	createRandomState(start);
+	printf("Start: ");
+	printState(start);
+	printf("\n");
 
-	// unsigned result = CAPancakeSearcher::search(start);
-	// unsigned result2 = BDIDAStarPancakeSearcher::search(start);
-	// printf("C* = %u\n", result);
-	// printf("C*(2) = %u\n", result2);
+	unsigned result = CAPancakeSearcher::search(start);
+	printf("C* = %u\n", result);
+	printf("nodes generated = %llu\n", CAPancakeSearcher::generated);
+	printf("nodes memory used = %llu\n", CAPancakeSearcher::memoryUsed);
+	unsigned result2 = IDAStarPancakeSearcher::search(start);
+	printf("C*(2) = %u\n", result2);
+	printf("nodes generated(2) = %llu\n", IDAStarPancakeSearcher::generated);
 
 
-	for (unsigned i = 0; i < 1000; ++i) {
-		printf("Instance %u\n", i);
-		Pancakes p;
-		createRandomState(p);
-		unsigned long before = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-		unsigned result = BDIDAStarPancakeSearcher::search(p);
-		unsigned long after = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+	// for (unsigned i = 0; i < 1000; ++i) {
+		// printf("Instance %u\n", i);
+		// Pancakes p;
+		// createRandomState(p);
+		// printState(p);
+		// printf("\n");
+		// //unsigned long before = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+		// unsigned result = BDIDAStarPancakeSearcher::search(p);
+		// //unsigned long after = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
 
-		unsigned long before2 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-		unsigned result2 = CAPancakeSearcher::search(p);
-		unsigned long after2 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-		printf("C* (ref) = %u\n", result);
-		printf("C* (ca) = %u\n", result2);
-		if (result2 != result) {
-			printf("ERRRORERRORERROR\n");
-			exit(1);
-		}
+		// unsigned long before2 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+		// unsigned result2 = CAPancakeSearcher::search(p);
+		// unsigned long after2 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+		// // printf("C* (ref) = %u\n", result);
+		// printf("C* = %u\n", result2);
+		// printf("nodes generated = %llu\n", CAPancakeSearcher::generated);
+		// printf("nodes memory used = %llu\n", CAPancakeSearcher::memoryUsed);
+		// if (result2 != result) {
+			// printf("ERRRORERRORERROR\n");
+			// exit(1);
+		// }
 
-		printf("time (ref): %lu\n", (unsigned long) (after - before));
-		printf("time (ca): %lu\n", (unsigned long) (after2 - before2));
-	}
+		// // printf("time (ref): %lu\n", (unsigned long) (after - before));
+		// printf("time: %lu\n", (unsigned long) (after2 - before2));
+	// }
 	return 0;
 }
