@@ -6,10 +6,14 @@
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
+#include <unordered_set>
 #include <vector>
+#include "MurmurHash3.h"
 #include "Tiles.h"
-#include "MIDAS.h"
-//#include "IDAStar.h"
+#include "HashSet.h"
+//#include "MIDAS.h"
+#include "IDAStar.h"
+#include "CAStar.h"
 
 int main() {
 	const Tiles start {
@@ -33,7 +37,7 @@ int main() {
 		 // 3, 0, 13,5
 	// };
 
-	unsigned result = IDAStarTileSearcher::search(start);
+	unsigned result = CAStarTileSearcher::search(start);
 	printf("C* = %u\n", result);
 
 

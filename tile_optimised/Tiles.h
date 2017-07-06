@@ -5,7 +5,7 @@
 #define MAX_SOLUTION 80
 #define MAX_DESCENDANTS 4
 
-typedef unsigned char Tiles[N];
+typedef std::array<unsigned char, N> Tiles;
 
 bool verifyState(const Tiles& tiles) {
 	std::vector<unsigned> nums(N, 0);
@@ -54,5 +54,16 @@ void createRandomState(Tiles& tiles) {
 		while (tiles[j] == 0) { ++j; }
 		std::swap(tiles[i], tiles[j]);
 	}
-
 }
+struct TilesHasher {
+	static std::uint64_t get(const Tiles& tiles, int n) {
+		std::uint64_t out[2];
+		MurmurHash3_x64_128(tiles.data(), N, n * 12582917, out);
+
+		return out[n % 2];
+	}
+
+	size_t operator()(const Tiles& tiles) const {
+		return get(tiles, 0);
+	}
+};

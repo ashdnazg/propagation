@@ -26,7 +26,7 @@ void printState(const Pancakes& pancakes) {
 struct PancakeHasher {
 	static std::uint64_t get(const Pancakes& pancakes, int n) {
 		std::uint64_t out[2];
-		MurmurHash3_x64_128(&pancakes, N, n * 12582917, out);
+		MurmurHash3_x64_128(pancakes.data(), N, n * 12582917, out);
 
 		return out[n % 2];
 	}
