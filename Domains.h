@@ -21,7 +21,7 @@ public:
 	{
 	public:
 		void insert(unsigned node);
-		void remove(unsigned node);
+		void erase(unsigned node);
 		void clear();
 		bool contains(unsigned node) const;
 		std::vector<bool> bitField;
@@ -55,7 +55,7 @@ public:
 	{
 	public:
 		void insert(unsigned node);
-		void remove(unsigned node);
+		void erase(unsigned node);
 		void clear();
 		bool contains(unsigned node) const;
 		std::vector<bool> bitField;
@@ -91,14 +91,15 @@ public:
 	{
 	public:
 		void insert(std::uint64_t node);
-		void remove(std::uint64_t node);
+		void erase(std::uint64_t node);
 		void clear();
 		bool contains(std::uint64_t node) const;
+		bool empty() const;
 		std::unordered_set<std::uint64_t> nodeSet;
 	};
 
 	struct ManhattanDistance {
-		static inline int get(const Tile16Domain* d, std::uint64_t node1, std::uint64_t node2) {
+		static inline int get(const Tile16Domain& d, std::uint64_t node1, std::uint64_t node2) {
 			const std::uint64_t mask = 0xF;
 			std::array<unsigned char, 16> legend;
 			std::uint64_t lastTile = 0;
@@ -140,5 +141,6 @@ public:
 	};
 
 	void getNeighbors(std::uint64_t node, std::vector<Neighbor<std::uint64_t, unsigned>>& nodesVec) const;
+	static void createRandomState(std::uint64_t& node);
 	static bool same(std::uint64_t node1, std::uint64_t node2);
 };

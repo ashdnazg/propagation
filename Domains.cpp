@@ -49,7 +49,7 @@ void GridDomain::List::insert(unsigned node)
 	bitField[node] = true;
 }
 
-void GridDomain::List::remove(unsigned node)
+void GridDomain::List::erase(unsigned node)
 {
 	if (bitField.size() <= node)
 		return;
@@ -127,7 +127,7 @@ void OctileDomain::List::insert(unsigned node)
 	bitField[node] = true;
 }
 
-void OctileDomain::List::remove(unsigned node)
+void OctileDomain::List::erase(unsigned node)
 {
 	if (bitField.size() <= node)
 		return;
@@ -220,12 +220,71 @@ bool Tile16Domain::same(std::uint64_t node1, std::uint64_t node2)
 	return ((node1 ^ node2) & 0x0FFFFFFFFFFFFFFF) == 0;
 }
 
+bool verifyState(const std::array<unsigned, 16>& tiles) {
+	std::vector<unsigned> nums(16, 0);
+	std::vector<unsigned> rev(16, 0);
+	bool parity = true;
+
+	for (unsigned i = 0; i < 16; ++i) {
+		nums[i] = tiles[i];
+		rev[tiles[i]] = i;
+		if (tiles[i] == 0) {
+			unsigned dx = 4 - (i % 4) - 1;
+			unsigned dy = 4 - (i / 4) - 1;
+			parity = parity ^ ((dx + dy) % 2);
+		}
+	}
+
+	for (unsigned i = 0; i < 15; ++i) {
+		if (nums[i] == i + 1)
+			continue;
+
+		unsigned pos = rev[i + 1];
+		rev[nums[i]] = pos;
+		std::swap(nums[i], nums[pos]);
+		parity = !parity;
+	}
+	return parity;
+}
+
+
+
+
+
+void Tile16Domain::createRandomState(std::uint64_t& node)
+{
+	node = 0;
+	std::vector<unsigned> nums(16, 0);
+	std::array<unsigned, 16> tiles;
+	for (unsigned i = 0; i < 16; ++i) {
+		nums[i] = i;
+	}
+
+	for (unsigned i = 0; i < 16; ++i) {
+		unsigned idx = std::rand() % (16 - i);
+		tiles[i] = nums[idx];
+		nums.erase(nums.begin() + idx);
+	}
+
+	if (!verifyState(tiles)) {
+		int i = 0;
+		while (tiles[i] == 0) { ++i; }
+		int j = i + 1;
+		while (tiles[j] == 0) { ++j; }
+		std::swap(tiles[i], tiles[j]);
+	}
+	for (unsigned i = 14; i >= 0; ++i) {
+		node |= tiles[i] << (i * 4);
+	}
+}
+
+
 void Tile16Domain::List::insert(std::uint64_t node)
 {
 	nodeSet.insert(node & 0x0FFFFFFFFFFFFFFF);
 }
 
-void Tile16Domain::List::remove(std::uint64_t node)
+void Tile16Domain::List::erase(std::uint64_t node)
 {
 	nodeSet.erase(node & 0x0FFFFFFFFFFFFFFF);
 }
@@ -233,6 +292,11 @@ void Tile16Domain::List::remove(std::uint64_t node)
 void Tile16Domain::List::clear()
 {
 	nodeSet.clear();
+}
+
+bool Tile16Domain::List::empty() const
+{
+	return nodeSet.empty();
 }
 
 bool Tile16Domain::List::contains(std::uint64_t node) const
