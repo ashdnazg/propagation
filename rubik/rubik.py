@@ -193,6 +193,8 @@ def create_state(s):
     current_s = ''
     current_op = ''
     for c in s:
+        if c.strip() == '':
+            continue
         if c in SIDES and len(current_op) > 0:
             result = multiply_states(result, OPERATOR_STATES[current_op])
             current_s += current_op
@@ -207,12 +209,100 @@ def create_state(s):
     print s, o
     return result
 
+def create_face_state(side):
+    corners, edges = START_STATE
+    face_corners = []
+    face_edges = []
+    for c in corners:
+        if side in c:
+            face_corners.append(c)
+        else:
+            face_corners.append(('*','*','*'))
+
+    for e in edges:
+        if side in e:
+            face_edges.append(e)
+        else:
+            face_edges.append(('*','*'))
+
+    return (tuple(face_corners), tuple(face_edges))
+
+def create_edge_state(side1, side2):
+    corners, edges = START_STATE
+    face_corners = []
+    face_edges = []
+    for c in corners:
+        if side1 in c and side2 in c:
+            face_corners.append(c)
+        else:
+            face_corners.append(('*','*','*'))
+
+    for e in edges:
+        if side1 in e and side2 in e:
+            face_edges.append(e)
+        else:
+            face_edges.append(('*','*'))
+
+    return (tuple(face_corners), tuple(face_edges))
+
+def create_corner_state(side1, side2, side3):
+    corners, edges = START_STATE
+    face_corners = []
+    face_edges = []
+    for c in corners:
+        if side1 in c and side2 in c and side3 in c:
+            face_corners.append(c)
+        else:
+            face_corners.append(('*','*','*'))
+
+    for e in edges:
+        if (side1 in e and side2 in e) or (side1 in e and side3 in e) or (side2 in e and side3 in e):
+            face_edges.append(e)
+        else:
+            face_edges.append(('*','*'))
+
+    return (tuple(face_corners), tuple(face_edges))
+
+def create_PDB():
+    g = 1
+    counts = []
+
+    start_state = create_face_state('F')
+    #start_state = create_edge_state('F', 'R')
+    #start_state = create_corner_state('F', 'R', 'U')
+    next_states = [start_state]
+    h = {start_state : 0}
+    while len(next_states) > 0:
+        counts.append(len(next_states))
+        print g, counts[-1], sum(counts)
+        current_states = next_states
+        next_states = []
+        for state in current_states:
+            for opstate in OPERATOR_STATES.values():
+                res = multiply_states(state, opstate)
+                if res in h:
+                    continue
+
+                next_states.append(res)
+                h[res] = g
+
+        g += 1
+    counts.append(len(next_states))
+    print counts
+    print sum(counts)
+    return h
+
+
+
+
 
 def main():
 
-    start = create_state("RU2D'BD'")
-    start = create_state("DB'DU2R'")
-    #print get_order(start)
+    start = create_state("BLB'L'F2D'RB'UD2BLB2RDR'B2R2B2R'")
+    # start = create_state("DB'DU2R'")
+
+    #create_PDB()
+    print get_order(start)
 
 
 
