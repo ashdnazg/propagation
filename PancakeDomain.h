@@ -42,9 +42,10 @@ public:
 	static void createRandomState(NodeType& node);
 	static void printState(const NodeType& node);
 
+	template<int M>
 	struct GAP {
 		static inline unsigned get(const PancakeDomain& d, const NodeType& node1, const NodeType& node2) {
-			unsigned h = N;
+			unsigned h = N - M;
 			std::array<unsigned char, N> legend;
 
 			for (unsigned pos = 0; pos < N; ++pos) {
@@ -52,7 +53,13 @@ public:
 			}
 
 			for (int pos = 0; pos < N - 1; ++pos) {
-				h -= d.hCache[legend[node1.pancakes[pos]]][legend[node1.pancakes[pos + 1]]];
+				const unsigned char p1 = legend[node1.pancakes[pos]];
+				const unsigned char p2 = legend[node1.pancakes[pos + 1]];
+
+				if (std::min(p1,p2) < M)
+					continue;
+
+				h -= d.hCache[p1][p2];
 			}
 			h -= node1.pancakes[N - 1] == node2.pancakes[N - 1];
 

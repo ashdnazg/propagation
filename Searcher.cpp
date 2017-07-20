@@ -24,7 +24,7 @@ int main() {
 	//GridDomain domain(10,10);
 	//const OctileDomain octile(10,10);
 	std::srand(std::time(0));
-	typedef PancakeDomain<70> P;
+	typedef PancakeDomain<10> P;
 	typedef Tile16Domain T16;
 	const P pancake;
 	const T16 tiles;
