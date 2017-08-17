@@ -143,4 +143,5 @@ public:
 	void getNeighbors(std::uint64_t node, std::vector<Neighbor<std::uint64_t, unsigned>>& nodesVec) const;
 	static void createRandomState(std::uint64_t& node);
 	static bool same(std::uint64_t node1, std::uint64_t node2);
+	static void printState(std::uint64_t node);
 };

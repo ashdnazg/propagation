@@ -259,13 +259,11 @@ void Tile16Domain::createRandomState(std::uint64_t& node)
 	for (unsigned i = 0; i < 16; ++i) {
 		nums[i] = i;
 	}
-
 	for (unsigned i = 0; i < 16; ++i) {
 		unsigned idx = std::rand() % (16 - i);
 		tiles[i] = nums[idx];
 		nums.erase(nums.begin() + idx);
 	}
-
 	if (!verifyState(tiles)) {
 		int i = 0;
 		while (tiles[i] == 0) { ++i; }
@@ -273,8 +271,37 @@ void Tile16Domain::createRandomState(std::uint64_t& node)
 		while (tiles[j] == 0) { ++j; }
 		std::swap(tiles[i], tiles[j]);
 	}
-	for (unsigned i = 14; i >= 0; ++i) {
-		node |= tiles[i] << (i * 4);
+	for (int i = 0; i < 15; ++i) {
+		node |= std::uint64_t(tiles[i]) << std::uint64_t(i * 4);
+	}
+}
+
+
+void Tile16Domain::printState(std::uint64_t node)
+{
+	const std::uint64_t mask = 0xF;
+
+	std::uint64_t lastTile = 0;
+
+
+	// Reconstructing the original node
+	for (unsigned pos = 0; pos < 15; ++pos) {
+		const std::uint64_t tile = (node >> (pos * 4)) & mask;
+		if (tile == 0) {
+			printf("  ");
+		} else {
+			lastTile = lastTile + tile;
+			printf("%x ", (unsigned) tile);
+		}
+		if (pos % 4 == 3) {
+			printf("\n");
+		}
+	}
+	lastTile = (120 - lastTile) & mask;
+	if (lastTile == 0) {
+		printf("\n");
+	} else {
+		printf("%x\n", (unsigned) lastTile);
 	}
 }
 
