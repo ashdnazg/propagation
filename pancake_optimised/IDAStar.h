@@ -10,7 +10,7 @@ public:
 		//unsigned h;
 	};
 
-	typedef unsigned Cache[N][N];
+	typedef unsigned Cache[N + 1][N + 1];
 
 	static bool DFS(const Pancakes& start, const Pancakes& goal, unsigned th);
 	static unsigned search(const Pancakes& start);
@@ -18,21 +18,18 @@ public:
 	static std::uint64_t generated;
 };
 
-
 unsigned IDAStarPancakeSearcher::initCache(Cache& cache, const Pancakes& start, const Pancakes& goal) {
-	memset(cache, 0, N * N * sizeof(**cache));
+	memset(cache, 0, (N + 1) * (N + 1) * sizeof(**cache));
 
-	for (int pos = 0; pos < N - 1; ++pos) {
+	for (int pos = GAP_LEVEL; pos < N; ++pos) {
 		cache[goal[pos]][goal[pos + 1]] = 1;
 		cache[goal[pos + 1]][goal[pos]] = 1;
 	}
-	unsigned h = N;
+	unsigned h = N - GAP_LEVEL;
 
-	for (int pos = 0; pos < N - 1; ++pos) {
+	for (int pos = 0; pos < N; ++pos) {
 		h -= cache[start[pos]][start[pos + 1]];
 	}
-
-	h -= start[N - 1] == goal[N - 1];
 
 	return h;
 }
@@ -55,7 +52,7 @@ bool IDAStarPancakeSearcher::DFS(const Pancakes& start, const Pancakes& goal, un
 	int g = -1;
 	// Creating start node
 	{
-		for (unsigned pos = 0; pos < N; ++pos) {
+		for (unsigned pos = 0; pos < N + 1; ++pos) {
 			pancakes[pos] = start[pos];
 		}
 		sp->flip = 1;
@@ -72,13 +69,8 @@ bool IDAStarPancakeSearcher::DFS(const Pancakes& start, const Pancakes& goal, un
 		if (flip < 0) {
 			const int backflip = -flip;
 			const int pivot = backflip / 2;
-			if (backflip < N) {
-				h -= hCache[pancakes[backflip]][pancakes[0]];
-				h += hCache[pancakes[backflip]][pancakes[backflip - 1]];
-			} else {
-				h -= pancakes[0] == goal[N - 1];
-				h += pancakes[N - 1] == goal[N - 1];
-			}
+			h -= hCache[pancakes[backflip]][pancakes[0]];
+			h += hCache[pancakes[backflip]][pancakes[backflip - 1]];
 			for (int pos = 0; pos < pivot; ++pos) {
 				std::swap(pancakes[pos], pancakes[backflip - pos - 1]);
 			}
@@ -92,13 +84,8 @@ bool IDAStarPancakeSearcher::DFS(const Pancakes& start, const Pancakes& goal, un
 
 		// commit
 		{
-			if (flip < N) {
-				h -= hCache[pancakes[flip]][pancakes[0]];
-				h += hCache[pancakes[flip]][pancakes[flip - 1]];
-			} else {
-				h -= pancakes[0] == goal[N - 1];
-				h += pancakes[N - 1] == goal[N - 1];
-			}
+			h -= hCache[pancakes[flip]][pancakes[0]];
+			h += hCache[pancakes[flip]][pancakes[flip - 1]];
 			const int pivot = flip / 2;
 			for (int pos = 0; pos < pivot; ++pos) {
 				std::swap(pancakes[pos], pancakes[flip - pos - 1]);
@@ -114,7 +101,7 @@ bool IDAStarPancakeSearcher::DFS(const Pancakes& start, const Pancakes& goal, un
 
 
 		// don't expand if last layer (continue sends us straight to unroll)
-		if (unsigned(g) == th) {
+		if (pancakes == goal) {
 			return true;
 		}
 
@@ -125,13 +112,8 @@ bool IDAStarPancakeSearcher::DFS(const Pancakes& start, const Pancakes& goal, un
 					continue;
 
 				unsigned tempH = h;
-				if (pos < N) {
-					tempH -= hCache[pancakes[pos]][pancakes[0]];
-					tempH += hCache[pancakes[pos]][pancakes[pos - 1]];
-				} else {
-					tempH -= pancakes[0] == goal[N - 1];
-					tempH += pancakes[N - 1] == goal[N - 1];
-				}
+				tempH -= hCache[pancakes[pos]][pancakes[0]];
+				tempH += hCache[pancakes[pos]][pancakes[pos - 1]];
 				//printf("generating, pos: %u expected h: %d\n", pos, tempH);
 				if ((g + 1 + tempH) > th) {
 					continue;
@@ -150,7 +132,7 @@ unsigned IDAStarPancakeSearcher::search(const Pancakes& start) {
 	generated = 0;
 	Pancakes goal;
 	unsigned th = 0;
-	for (unsigned i = 0; i < N; ++i) {
+	for (unsigned i = 0; i < N + 1; ++i) {
 		goal[i] = i;
 	}
 	while (true) {

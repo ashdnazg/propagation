@@ -1,13 +1,15 @@
 #pragma once
 
-#define N 60
+#define N 8
 #define MAX_SOLUTION (2 * N)
 #define MAX_DESCENDANTS (N - 1)
 
-typedef std::array<unsigned char, N> Pancakes;
+#define GAP_LEVEL 0
+
+typedef std::array<unsigned char, N + 1> Pancakes;
 
 void createRandomState(Pancakes& pancakes) {
-	for (unsigned i = 0; i < N; ++i) {
+	for (unsigned i = 0; i < N + 1; ++i) {
 		pancakes[i] = i;
 	}
 
@@ -18,7 +20,7 @@ void createRandomState(Pancakes& pancakes) {
 
 void printState(const Pancakes& pancakes) {
 	for (unsigned i = 0; i < N; ++i) {
-		printf("%u ", pancakes[i]);
+		printf("%u, ", pancakes[i]);
 	}
 }
 

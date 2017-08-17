@@ -11,7 +11,7 @@ public:
 	};
 
 	typedef HashSet<Pancakes, PancakeHasher, 1 << 31> myHashSet;
-	typedef unsigned Cache[N][N];
+	typedef unsigned Cache[N + 1][N + 1];
 
 	static bool CASearch(const Pancakes& start, const Pancakes& goal, unsigned thF, unsigned thB);
 	static unsigned backwardSearch(const Pancakes& start, const Pancakes& goal, unsigned maxF, unsigned thB, myHashSet& hashSet, Cache& hCache);
@@ -23,19 +23,17 @@ public:
 
 
 unsigned CAPancakeSearcher::initCache(Cache& cache, const Pancakes& start, const Pancakes& goal) {
-	memset(cache, 0, N * N * sizeof(**cache));
+	memset(cache, 0, (N + 1) * (N + 1) * sizeof(**cache));
 
-	for (int pos = 0; pos < N - 1; ++pos) {
+	for (int pos = GAP_LEVEL; pos < N; ++pos) {
 		cache[goal[pos]][goal[pos + 1]] = 1;
 		cache[goal[pos + 1]][goal[pos]] = 1;
 	}
-	unsigned h = N;
+	unsigned h = N - GAP_LEVEL;
 
-	for (int pos = 0; pos < N - 1; ++pos) {
+	for (int pos = 0; pos < N; ++pos) {
 		h -= cache[start[pos]][start[pos + 1]];
 	}
-
-	h -= start[N - 1] == goal[N - 1];
 
 	return h;
 }
@@ -48,22 +46,20 @@ unsigned CAPancakeSearcher::backwardSearch(const Pancakes& start, const Pancakes
 
 	Node* sp = stack;
 	int g = -1;
-	unsigned h = N;
+	unsigned h = N - GAP_LEVEL;
 	// Creating start node
 	{
-		for (unsigned pos = 0; pos < N; ++pos) {
+		for (unsigned pos = 0; pos < N + 1; ++pos) {
 			pancakes[pos] = start[pos];
 			legend[goal[pos]] = pos;
-
 		}
 		sp->flip = 1;
 		//sp->h = h;
 	}
 	{
-		for (int pos = 0; pos < N - 1; ++pos) {
+		for (int pos = 0; pos < N; ++pos) {
 			h -= hCache[legend[start[pos]]][legend[start[pos + 1]]];
 		}
-		h -= start[N - 1] == goal[N - 1];
 
 		if (maxF < h) {
 			//printf("breaking backward since initial h was: %u\n", h);
@@ -80,13 +76,8 @@ unsigned CAPancakeSearcher::backwardSearch(const Pancakes& start, const Pancakes
 		if (flip < 0) {
 			const int backflip = -flip;
 			const int pivot = backflip / 2;
-			if (backflip < N) {
-				h -= hCache[legend[pancakes[backflip]]][legend[pancakes[0]]];
-				h += hCache[legend[pancakes[backflip]]][legend[pancakes[backflip - 1]]];
-			} else {
-				h -= pancakes[0] == goal[N - 1];
-				h += pancakes[N - 1] == goal[N - 1];
-			}
+			h -= hCache[legend[pancakes[backflip]]][legend[pancakes[0]]];
+			h += hCache[legend[pancakes[backflip]]][legend[pancakes[backflip - 1]]];
 			for (int pos = 0; pos < pivot; ++pos) {
 				std::swap(pancakes[pos], pancakes[backflip - pos - 1]);
 			}
@@ -101,13 +92,9 @@ unsigned CAPancakeSearcher::backwardSearch(const Pancakes& start, const Pancakes
 
 		// commit
 		{
-			if (flip < N) {
-				h -= hCache[legend[pancakes[flip]]][legend[pancakes[0]]];
-				h += hCache[legend[pancakes[flip]]][legend[pancakes[flip - 1]]];
-			} else {
-				h -= pancakes[0] == goal[N - 1];
-				h += pancakes[N - 1] == goal[N - 1];
-			}
+			h -= hCache[legend[pancakes[flip]]][legend[pancakes[0]]];
+			h += hCache[legend[pancakes[flip]]][legend[pancakes[flip - 1]]];
+
 			const int pivot = flip / 2;
 			for (int pos = 0; pos < pivot; ++pos) {
 				std::swap(pancakes[pos], pancakes[flip - pos - 1]);
@@ -137,13 +124,8 @@ unsigned CAPancakeSearcher::backwardSearch(const Pancakes& start, const Pancakes
 					continue;
 
 				unsigned tempH = h;
-				if (pos < N) {
-					tempH -= hCache[legend[pancakes[pos]]][legend[pancakes[0]]];
-					tempH += hCache[legend[pancakes[pos]]][legend[pancakes[pos - 1]]];
-				} else {
-					tempH -= pancakes[0] == goal[N - 1];
-					tempH += pancakes[N - 1] == goal[N - 1];
-				}
+				tempH -= hCache[legend[pancakes[pos]]][legend[pancakes[0]]];
+				tempH += hCache[legend[pancakes[pos]]][legend[pancakes[pos - 1]]];
 				//printf("generating, pos: %u expected h: %d\n", pos, tempH);
 				if ((g + 1 + tempH) > maxF) {
 					continue;
@@ -182,7 +164,7 @@ bool CAPancakeSearcher::CASearch(const Pancakes& start, const Pancakes& goal, un
 	int nextCADepth = -2;
 	// Creating start node
 	{
-		for (unsigned pos = 0; pos < N; ++pos) {
+		for (unsigned pos = 0; pos < N + 1; ++pos) {
 			pancakes[pos] = start[pos];
 		}
 		sp->flip = 1;
@@ -199,14 +181,9 @@ bool CAPancakeSearcher::CASearch(const Pancakes& start, const Pancakes& goal, un
 		if (flip < 0) {
 			const int backflip = -flip;
 			const int pivot = backflip / 2;
-			const unsigned prevH = h;
-			if (backflip < N) {
-				h -= hCache[pancakes[backflip]][pancakes[0]];
-				h += hCache[pancakes[backflip]][pancakes[backflip - 1]];
-			} else {
-				h -= pancakes[0] == goal[N - 1];
-				h += pancakes[N - 1] == goal[N - 1];
-			}
+			//const unsigned prevH = h;
+			h -= hCache[pancakes[backflip]][pancakes[0]];
+			h += hCache[pancakes[backflip]][pancakes[backflip - 1]];
 			for (int pos = 0; pos < pivot; ++pos) {
 				std::swap(pancakes[pos], pancakes[backflip - pos - 1]);
 			}
@@ -216,7 +193,7 @@ bool CAPancakeSearcher::CASearch(const Pancakes& start, const Pancakes& goal, un
 			}
 
 			//const bool forceSearchCondition = ;
-			const bool forceSearchCondition = prevH >= h || (nextCADepth < 7 * int(thF >> 3));
+			const bool forceSearchCondition = nextCADepth < int(thF >> 1);
 
 			if (forceSearchCondition && !hashSet.isEmpty()) {
 				//printf("doing backward search with ca depth: %d\n", caDepth);
@@ -240,13 +217,8 @@ bool CAPancakeSearcher::CASearch(const Pancakes& start, const Pancakes& goal, un
 
 		// commit
 		{
-			if (flip < N) {
-				h -= hCache[pancakes[flip]][pancakes[0]];
-				h += hCache[pancakes[flip]][pancakes[flip - 1]];
-			} else {
-				h -= pancakes[0] == goal[N - 1];
-				h += pancakes[N - 1] == goal[N - 1];
-			}
+			h -= hCache[pancakes[flip]][pancakes[0]];
+			h += hCache[pancakes[flip]][pancakes[flip - 1]];
 			const int pivot = flip / 2;
 			for (int pos = 0; pos < pivot; ++pos) {
 				std::swap(pancakes[pos], pancakes[flip - pos - 1]);
@@ -269,11 +241,11 @@ bool CAPancakeSearcher::CASearch(const Pancakes& start, const Pancakes& goal, un
 				nextCADepth = thF;
 			}
 			const bool isFull = hashSet.insert(pancakes);
+			memoryUsed = std::max(memoryUsed, hashSet.getCount());
 			commonAncestor = nextCommonAncestor;
 			caDepth = nextCADepth;
 			if (isFull) {
 				//printf("doing backward search with ca depth: %d\n", caDepth);
-				memoryUsed = std::max(memoryUsed, hashSet.getCount());
 				const bool found = backwardSearch(goal, commonAncestor, maxF - caDepth, thB, hashSet, hCache);
 				if (found) {
 					return true;
@@ -292,13 +264,8 @@ bool CAPancakeSearcher::CASearch(const Pancakes& start, const Pancakes& goal, un
 					continue;
 
 				unsigned tempH = h;
-				if (pos < N) {
-					tempH -= hCache[pancakes[pos]][pancakes[0]];
-					tempH += hCache[pancakes[pos]][pancakes[pos - 1]];
-				} else {
-					tempH -= pancakes[0] == goal[N - 1];
-					tempH += pancakes[N - 1] == goal[N - 1];
-				}
+				tempH -= hCache[pancakes[pos]][pancakes[0]];
+				tempH += hCache[pancakes[pos]][pancakes[pos - 1]];
 				//printf("generating, pos: %u expected h: %d\n", pos, tempH);
 				if ((g + 1 + tempH) > maxF) {
 					continue;
@@ -312,7 +279,6 @@ bool CAPancakeSearcher::CASearch(const Pancakes& start, const Pancakes& goal, un
 
 	if (!hashSet.isEmpty()) {
 		printf("doing final backward search with ca depth: %d\n", caDepth);
-		memoryUsed = std::max(memoryUsed, hashSet.getCount());
 		return backwardSearch(goal, commonAncestor, maxF - caDepth, thB, hashSet, hCache);
 	}
 
@@ -325,11 +291,11 @@ unsigned CAPancakeSearcher::search(const Pancakes& start) {
 	Pancakes goal;
 	unsigned thF = 0;
 	unsigned thB = 0;
-	for (unsigned i = 0; i < N; ++i) {
+	for (unsigned i = 0; i < N + 1; ++i) {
 		goal[i] = i;
 	}
 	while (true) {
-		//printf("Starting iteration with thF: %u, thB: %u\n", thF, thB);
+		// printf("Starting iteration with thF: %u, thB: %u\n", thF, thB);
 		bool found = CASearch(start, goal, thF, thB);
 		if (found) {
 			return thF + thB;
