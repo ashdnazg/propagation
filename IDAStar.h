@@ -81,7 +81,7 @@ typename IDAStarSearcher<D,H>::DomainCost IDAStarSearcher<D,H>::search(DomainNod
 	Node root = {start_, 0, currentF};
 	++generated;
 	while (true) {
-		printf("currentF: %u\n", currentF);
+		// printf("currentF: %u\n", currentF);
 		DomainCost result = DFS(root);
 		if (result == currentF || result == std::numeric_limits<DomainCost>::max())
 			return result;

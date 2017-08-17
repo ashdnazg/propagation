@@ -61,7 +61,8 @@ public:
 
 				h -= d.hCache[p1][p2];
 			}
-			h -= node1.pancakes[N - 1] == node2.pancakes[N - 1];
+			if (M < N)
+				h -= node1.pancakes[N - 1] == node2.pancakes[N - 1];
 
 			return h;
 		}

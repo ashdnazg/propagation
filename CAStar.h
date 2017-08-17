@@ -24,6 +24,7 @@ public:
 
 	std::uint64_t expanded;
 	std::uint64_t generated;
+	std::uint64_t memoryUsed;
 private:
 	DomainNode start;
 	DomainNode goal;
@@ -48,6 +49,7 @@ void CAStarSearcher<D,H>::reset(DomainNode start_, DomainNode goal_)
 	thB = h / 2;
 	expanded = 0;
 	generated = 0; // the start is always generated
+	memoryUsed = 0;
 }
 
 
@@ -90,6 +92,14 @@ typename CAStarSearcher<D,H>::DomainCost CAStarSearcher<D,H>::backDFS(const Node
 
 template<class D, class H>
 typename CAStarSearcher<D,H>::DomainCost CAStarSearcher<D,H>::backSearch() {
+	if (thB == 0) {
+		if (perimeter.contains(goal)) {
+			return 0;
+		} else {
+			return std::numeric_limits<DomainCost>::max();
+		}
+	}
+
 	Node root = {goal, 0, thF + thB};
 	++generated;
 	return backDFS(root);
@@ -105,13 +115,13 @@ typename CAStarSearcher<D,H>::DomainCost CAStarSearcher<D,H>::DFS(const Node& ro
 	// D::printState(root.domainNode);
 	// printf("\n");
 	domain.getNeighbors(root.domainNode, nodesVec);
+	generated += nodesVec.size();
 	for (const DomainNeighbor& n: nodesVec) {
 		DomainCost h = H::get(domain, n.node, goal);
 		Node neighbor = {n.node, root.g + n.cost, root.g + n.cost + h};
-		generated++;
 		// printf("generating: ");
 		// D::printState(n.node);
-		// printf("in depth: %u\n", (unsigned) root.g + n.cost);
+		// printf("in depth: %u h: %u\n", (unsigned) root.g + n.cost, h);
 		DomainCost tempResult;
 		if (neighbor.f > fF) {
 			tempResult = neighbor.f;
@@ -122,10 +132,11 @@ typename CAStarSearcher<D,H>::DomainCost CAStarSearcher<D,H>::DFS(const Node& ro
 			}
 			// printf("is candidate!\n");
 			perimeter.insert(n.node);
+			memoryUsed = std::max(perimeter.size(), memoryUsed);
 			commonAncestor = nextCommonAncestor;
 			caDepth = nextCADepth;
 			// printf("caDepth is now: %u\n", caDepth);
-			tempResult = std::numeric_limits<DomainCost>::max();
+			tempResult = fF + 1; // bad hack, sorry
 		} else {
 			tempResult = DFS(neighbor);
 			if (tempResult == fF) {
@@ -162,7 +173,7 @@ typename CAStarSearcher<D,H>::DomainCost CAStarSearcher<D,H>::search(DomainNode 
 	++generated;
 	while (true) {
 		fF = thF + thB;
-		printf("currentF: %u, thF: %u, thB: %u\n", fF, thF, thB);
+		// printf("currentF: %u, thF: %u, thB: %u\n", fF, thF, thB);
 		DomainCost result = DFS(root);
 		if (result == std::numeric_limits<DomainCost>::max())
 			return result;
