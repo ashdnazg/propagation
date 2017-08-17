@@ -62,10 +62,10 @@ typename CAStarSearcher<D,H>::DomainCost CAStarSearcher<D,H>::backDFS(const Node
 	// D::printState(root.domainNode);
 	// printf("\n");
 	domain.getNeighbors(root.domainNode, nodesVec);
+	generated += nodesVec.size();
 	for (const DomainNeighbor& n: nodesVec) {
 		DomainCost h = H::get(domain, n.node, commonAncestor);
 		Node neighbor = {n.node, root.g + n.cost, root.g + n.cost + h};
-		generated++;
 		// printf("backward generating: ");
 		// D::printState(n.node);
 		// printf("in depth: %u\n", (unsigned) root.g + n.cost);

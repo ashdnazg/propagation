@@ -93,7 +93,7 @@ void PancakeDomain<N>::createRandomState(NodeType& node) {
 template<int N>
 void PancakeDomain<N>::printState(const NodeType& node) {
 	for (unsigned i = 0; i < N; ++i) {
-		printf("%u ", node.pancakes[i]);
+		printf("%u, ", node.pancakes[i]);
 	}
 }
 

@@ -24,19 +24,21 @@ int main() {
 	//GridDomain domain(10,10);
 	//const OctileDomain octile(10,10);
 	std::srand(std::time(0));
-	typedef PancakeDomain<10> P;
+	typedef PancakeDomain<8> P;
 	typedef Tile16Domain T16;
 	const P pancake;
 	const T16 tiles;
 
-	P::NodeType n1 = {{3, 9, 1, 7, 4, 5, 8, 0, 2, 6}, 0};
+	P::NodeType n1;// = {{9, 1, 6, 0, 5, 7, 4, 2, 3, 8, }, 0};
 	// T16::NodeType n1; //= 0x0261C4E58F7BA930ULL;
 
 
-	P::NodeType n2 = {{1, 7, 9, 3, 6, 2, 5, 8, 4, 0}, 0};
+	P::NodeType n2;// = {{6, 5, 2, 1, 0, 9, 4, 8, 7, 3}, 0};
 	// T16::NodeType n2; //= 0x0FEDCBA987654321ULL;
 
-	for (int i=0; i < 1000; ++i) {
+	const int iterations = 1000;
+
+	for (int i=0; i < iterations; ++i) {
 		printf("Instance %d\n", i);
 		P::createRandomState(n1);
 		P::printState(n1);
@@ -66,7 +68,8 @@ int main() {
 			P::printState(n2);                                                                                                      \
 			printf("\n");                                                                                                           \
 			exit(1);                                                                                                                \
-		}
+		}                                                                                                                           \
+		fflush(stdout);
 
 		SEARCH(0)
 		SEARCH(1)
@@ -77,8 +80,6 @@ int main() {
 		SEARCH(6)
 		SEARCH(7)
 		SEARCH(8)
-		SEARCH(9)
-		SEARCH(10)
 	}
 	return 0;
 }
