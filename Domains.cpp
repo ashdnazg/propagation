@@ -21,7 +21,7 @@ void GridDomain::pushToVec(unsigned node, int cost, std::vector<Neighbor<unsigne
 }
 void GridDomain::getNeighbors(unsigned node, std::vector<Neighbor<unsigned, int>>& nodesVec) const
 {
-	unsigned x = node % ySize;
+	unsigned x = node % xSize;
 	if (x > 0) {
 		pushToVec(node - 1, 1, nodesVec);
 	}
@@ -83,7 +83,7 @@ void OctileDomain::pushToVec(unsigned node, float cost, std::vector<Neighbor<uns
 }
 void OctileDomain::getNeighbors(unsigned node, std::vector<Neighbor<unsigned, float>>& nodesVec) const
 {
-	unsigned x = node % ySize;
+	unsigned x = node % xSize;
 	const bool bl = x > 0;
 	const bool bu = node > xSize;
 	const bool br = x < xSize - 1;
