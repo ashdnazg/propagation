@@ -2154,27 +2154,25 @@ inline void DFSLevel(const __m256i& prevBatch) {
 		const __m256i batch = _mm256_set1_epi64x(placements[i]);
 		const __m256i andnot = _mm256_andnot_si256(batch, prevBatch);
 		const __m256i cmped = _mm256_cmpeq_epi64(andnot, prevBatch);
-		int test = _mm256_testz_si256(cmped, cmped);
-		if (test) {
+		int mask = _mm256_movemask_pd(_mm256_castsi256_pd(cmped));
+		if (mask == 0) {
 			continue;
 		}
 
 		const __m256i ored = _mm256_or_si256(prevBatch, batch);
-		const __m256i allones = _mm256_set1_epi32(-1);
-		int test2 = _mm256_testc_si256(cmped, allones);
-		if (test2) {
+		if (mask == 0xF) {
 			DFSLevel<N+1>(ored);
 		} else {
-			if (_mm256_extract_epi64(cmped, 0)) {
+			if (mask & 1) {
 				DFS64Level<N+1>(_mm256_extract_epi64(ored, 0));
 			}
-			if (_mm256_extract_epi64(cmped, 1)) {
+			if (mask & 2) {
 				DFS64Level<N+1>(_mm256_extract_epi64(ored, 1));
 			}
-			if (_mm256_extract_epi64(cmped, 2)) {
+			if (mask & 4) {
 				DFS64Level<N+1>(_mm256_extract_epi64(ored, 2));
 			}
-			if (_mm256_extract_epi64(cmped, 3)) {
+			if (mask & 8) {
 				DFS64Level<N+1>(_mm256_extract_epi64(ored, 3));
 			}
 		}
@@ -2187,10 +2185,11 @@ inline void DFSLevel(const __m256i& prevBatch) {
 
 template<>
 inline void DFSLevel<9>(const __m256i& prevBatch) {
+	const __m256i allones = _mm256_set1_epi32(-1);
+	const __m256i invPrevBatch = _mm256_xor_si256(allones, prevBatch);
 	for (unsigned i = placementIndices[9][0]; i < placementIndices[9][0] + placementIndices[9][1]; ++i) {
 		const __m256i batch = _mm256_set1_epi64x(placements[i]);
-		const __m256i andnot = _mm256_andnot_si256(batch, prevBatch);
-		const __m256i cmped = _mm256_cmpeq_epi64(andnot, prevBatch);
+		const __m256i cmped = _mm256_cmpeq_epi64(batch, invPrevBatch);
 		int test = _mm256_testz_si256(cmped, cmped);
 		if (test) {
 			continue;
@@ -2215,27 +2214,25 @@ inline void DFS64Level(const std::uint64_t& prevNum) {
 		const __m256i batch = *(__m256i *) (placements + i);
 		const __m256i andnot = _mm256_andnot_si256(batch, prevBatch);
 		const __m256i cmped = _mm256_cmpeq_epi64(andnot, prevBatch);
-		int test = _mm256_testz_si256(cmped, cmped);
-		if (test) {
+		int mask = _mm256_movemask_pd(_mm256_castsi256_pd(cmped));
+		if (mask == 0) {
 			continue;
 		}
 
 		const __m256i ored = _mm256_or_si256(prevBatch, batch);
-		const __m256i allones = _mm256_set1_epi32(-1);
-		int test2 = _mm256_testc_si256(cmped, allones);
-		if (test2) {
+		if (mask == 0xF) {
 			DFSLevel<N+1>(ored);
 		} else {
-			if (_mm256_extract_epi64(cmped, 0)) {
+			if (mask & 1) {
 				DFS64Level<N+1>(_mm256_extract_epi64(ored, 0));
 			}
-			if (_mm256_extract_epi64(cmped, 1)) {
+			if (mask & 2) {
 				DFS64Level<N+1>(_mm256_extract_epi64(ored, 1));
 			}
-			if (_mm256_extract_epi64(cmped, 2)) {
+			if (mask & 4) {
 				DFS64Level<N+1>(_mm256_extract_epi64(ored, 2));
 			}
-			if (_mm256_extract_epi64(cmped, 3)) {
+			if (mask & 8) {
 				DFS64Level<N+1>(_mm256_extract_epi64(ored, 3));
 			}
 		}
@@ -2248,11 +2245,11 @@ inline void DFS64Level(const std::uint64_t& prevNum) {
 
 template<>
 inline void DFS64Level<9>(const std::uint64_t& prevNum) {
-	const __m256i prevBatch = _mm256_set1_epi64x(prevNum);
+	const __m256i prevBatch = _mm256_set1_epi64x(~prevNum);
 	for (unsigned i = placementIndices[9][0]; i < placementIndices[9][0] + placementIndices[9][1]; i += 4) {
 		const __m256i batch = *(__m256i *) (placements + i);
-		const __m256i andnot = _mm256_andnot_si256(batch, prevBatch);
-		const __m256i cmped = _mm256_cmpeq_epi64(andnot, prevBatch);
+		//const __m256i andnot = _mm256_andnot_si256(batch, prevBatch);
+		const __m256i cmped = _mm256_cmpeq_epi64(batch, prevBatch);
 		int test = _mm256_testz_si256(cmped, cmped);
 		if (test) {
 			continue;
