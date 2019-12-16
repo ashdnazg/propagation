@@ -2146,10 +2146,10 @@ public:
 	static std::uint64_t found;
 };
 
-template<int N> inline void DFS64Level(const std::uint64_t& prevNum);
+template<int N> void DFS64Level(const std::uint64_t& prevNum);
 
 template<int N>
-inline void DFSLevel(const __m256i& prevBatch) {
+void DFSLevel(const __m256i& prevBatch) {
 	for (unsigned i = placementIndices[N][0]; i < placementIndices[N][0] + placementIndices[N][1]; ++i) {
 		const __m256i batch = _mm256_set1_epi64x(placements[i]);
 		const __m256i andnot = _mm256_andnot_si256(batch, prevBatch);
@@ -2208,7 +2208,7 @@ inline void DFSLevel<9>(const __m256i& prevBatch) {
 }
 
 template<int N>
-inline void DFS64Level(const std::uint64_t& prevNum) {
+void DFS64Level(const std::uint64_t& prevNum) {
 	const __m256i prevBatch = _mm256_set1_epi64x(prevNum);
 	for (unsigned i = placementIndices[N][0]; i < placementIndices[N][0] + placementIndices[N][1]; i += 4) {
 		const __m256i batch = *(__m256i *) (placements + i);
