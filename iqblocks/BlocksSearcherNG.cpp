@@ -2146,113 +2146,135 @@ public:
 	static std::uint64_t found;
 };
 
-static constexpr size_t STACK_SIZE = 2200;
-
-// void printm256(const __m256i& p, const char* prefix) {
-	// // printf("%s: %llu %llu %llu %llu\n", prefix, _mm256_extract_epi64(p, 0), _mm256_extract_epi64(p, 1), _mm256_extract_epi64(p, 2), _mm256_extract_epi64(p, 3));
-// }
+template<int N> inline void DFS64Level(const std::uint64_t& prevNum);
 
 template<int N>
 inline void DFSLevel(const __m256i& prevBatch) {
 	for (unsigned i = placementIndices[N][0]; i < placementIndices[N][0] + placementIndices[N][1]; ++i) {
 		const __m256i batch = _mm256_set1_epi64x(placements[i]);
-		// printm256(batch, "batch");
 		const __m256i andnot = _mm256_andnot_si256(batch, prevBatch);
-		// printm256(andnot, "andnot");
 		const __m256i cmped = _mm256_cmpeq_epi64(andnot, prevBatch);
-		// printm256(cmped, "cmped");
 		int test = _mm256_testz_si256(cmped, cmped);
-		// printf("test: %d\n", test);
 		if (test) {
 			continue;
 		}
 
 		const __m256i ored = _mm256_or_si256(prevBatch, batch);
 		const __m256i allones = _mm256_set1_epi32(-1);
-		const __m256i notcmp = _mm256_xor_si256(cmped, allones);
-		const __m256i mangled = _mm256_or_si256(ored, notcmp);
-		DFSLevel<N+1>(mangled);
+		int test2 = _mm256_testc_si256(cmped, allones);
+		if (test2) {
+			DFSLevel<N+1>(ored);
+		} else {
+			if (_mm256_extract_epi64(cmped, 0)) {
+				DFS64Level<N+1>(_mm256_extract_epi64(ored, 0));
+			}
+			if (_mm256_extract_epi64(cmped, 1)) {
+				DFS64Level<N+1>(_mm256_extract_epi64(ored, 1));
+			}
+			if (_mm256_extract_epi64(cmped, 2)) {
+				DFS64Level<N+1>(_mm256_extract_epi64(ored, 2));
+			}
+			if (_mm256_extract_epi64(cmped, 3)) {
+				DFS64Level<N+1>(_mm256_extract_epi64(ored, 3));
+			}
+		}
 	}
 	BlocksSearcher::generated += placementIndices[N][1];
-	if (BlocksSearcher::generated % (1024ULL * 1024ULL * 1024ULL) < (BlocksSearcher::generated - placementIndices[N][1]) % (1024ULL * 1024ULL * 1024ULL)) {
-		printf("generated: %llu \n", BlocksSearcher::generated);
-	}
+	// if (BlocksSearcher::generated % (1024ULL * 1024ULL * 1024ULL) < (BlocksSearcher::generated - placementIndices[N][1]) % (1024ULL * 1024ULL * 1024ULL)) {
+		// printf("generated: %llu \n", BlocksSearcher::generated);
+	// }
 }
 
 template<>
 inline void DFSLevel<9>(const __m256i& prevBatch) {
 	for (unsigned i = placementIndices[9][0]; i < placementIndices[9][0] + placementIndices[9][1]; ++i) {
 		const __m256i batch = _mm256_set1_epi64x(placements[i]);
-		// printm256(batch, "batch");
 		const __m256i andnot = _mm256_andnot_si256(batch, prevBatch);
-		// printm256(andnot, "andnot");
 		const __m256i cmped = _mm256_cmpeq_epi64(andnot, prevBatch);
-		// printm256(cmped, "cmped");
 		int test = _mm256_testz_si256(cmped, cmped);
-		// printf("test: %d\n", test);
 		if (test) {
 			continue;
 		}
 
-		//exit(0);
 		BlocksSearcher::generated += i;
-		if (BlocksSearcher::generated % (1024ULL * 1024ULL * 1024ULL) < (BlocksSearcher::generated - i) % (1024ULL * 1024ULL * 1024ULL)) {
-			printf("generated: %llu \n", BlocksSearcher::generated);
-		}
+		// if (BlocksSearcher::generated % (1024ULL * 1024ULL * 1024ULL) < (BlocksSearcher::generated - i) % (1024ULL * 1024ULL * 1024ULL)) {
+			// printf("generated: %llu \n", BlocksSearcher::generated);
+		// }
 		++BlocksSearcher::found;
-		if (BlocksSearcher::found % 1024 == 0) {
-			printf("found: %llu \n", BlocksSearcher::found);
-		}
+		// if (BlocksSearcher::found % 1024 == 0) {
+			// printf("found: %llu \n", BlocksSearcher::found);
+		// }
 		return;
 	}
 }
 
 template<int N>
 inline void DFS64Level(const std::uint64_t& prevNum) {
-	for (unsigned i = placementIndices[N][0]; i < placementIndices[N][0] + placementIndices[N][1]; ++i) {
-		const std::uint64_t placement = placements[i];
-		const std::uint64_t ored = placement | prevNum;
-		const std::uint64_t xored = placement ^ prevNum;
-		if (ored != xored) {
+	const __m256i prevBatch = _mm256_set1_epi64x(prevNum);
+	for (unsigned i = placementIndices[N][0]; i < placementIndices[N][0] + placementIndices[N][1]; i += 4) {
+		const __m256i batch = *(__m256i *) (placements + i);
+		const __m256i andnot = _mm256_andnot_si256(batch, prevBatch);
+		const __m256i cmped = _mm256_cmpeq_epi64(andnot, prevBatch);
+		int test = _mm256_testz_si256(cmped, cmped);
+		if (test) {
 			continue;
 		}
 
-		DFS64Level<N+1>(ored);
+		const __m256i ored = _mm256_or_si256(prevBatch, batch);
+		const __m256i allones = _mm256_set1_epi32(-1);
+		int test2 = _mm256_testc_si256(cmped, allones);
+		if (test2) {
+			DFSLevel<N+1>(ored);
+		} else {
+			if (_mm256_extract_epi64(cmped, 0)) {
+				DFS64Level<N+1>(_mm256_extract_epi64(ored, 0));
+			}
+			if (_mm256_extract_epi64(cmped, 1)) {
+				DFS64Level<N+1>(_mm256_extract_epi64(ored, 1));
+			}
+			if (_mm256_extract_epi64(cmped, 2)) {
+				DFS64Level<N+1>(_mm256_extract_epi64(ored, 2));
+			}
+			if (_mm256_extract_epi64(cmped, 3)) {
+				DFS64Level<N+1>(_mm256_extract_epi64(ored, 3));
+			}
+		}
 	}
 	BlocksSearcher::generated += placementIndices[N][1];
-	if (BlocksSearcher::generated % (1024ULL * 1024ULL * 1024ULL) < (BlocksSearcher::generated - placementIndices[N][1]) % (1024ULL * 1024ULL * 1024ULL)) {
-		printf("generated: %llu \n", BlocksSearcher::generated);
-	}
+	// if (BlocksSearcher::generated % (1024ULL * 1024ULL * 1024ULL) < (BlocksSearcher::generated - placementIndices[N][1]) % (1024ULL * 1024ULL * 1024ULL)) {
+		// printf("generated: %llu \n", BlocksSearcher::generated);
+	// }
 }
 
 template<>
 inline void DFS64Level<9>(const std::uint64_t& prevNum) {
-	const std::uint64_t notPrev = ~prevNum;
-	for (unsigned i = placementIndices[9][0]; i < placementIndices[9][0] + placementIndices[9][1]; ++i) {
-		if (placements[i] == notPrev) {
-			BlocksSearcher::generated += i;
-			if (BlocksSearcher::generated % (1024ULL * 1024ULL * 1024ULL) < (BlocksSearcher::generated - i) % (1024ULL * 1024ULL * 1024ULL)) {
-				printf("generated: %llu \n", BlocksSearcher::generated);
-			}
-			++BlocksSearcher::found;
-			if (BlocksSearcher::found % 1024 == 0) {
-				printf("found: %llu \n", BlocksSearcher::found);
-			}
-			return;
+	const __m256i prevBatch = _mm256_set1_epi64x(prevNum);
+	for (unsigned i = placementIndices[9][0]; i < placementIndices[9][0] + placementIndices[9][1]; i += 4) {
+		const __m256i batch = *(__m256i *) (placements + i);
+		const __m256i andnot = _mm256_andnot_si256(batch, prevBatch);
+		const __m256i cmped = _mm256_cmpeq_epi64(andnot, prevBatch);
+		int test = _mm256_testz_si256(cmped, cmped);
+		if (test) {
+			continue;
 		}
+
+		BlocksSearcher::generated += i;
+		// if (BlocksSearcher::generated % (1024ULL * 1024ULL * 1024ULL) < (BlocksSearcher::generated - i) % (1024ULL * 1024ULL * 1024ULL)) {
+			// printf("generated: %llu \n", BlocksSearcher::generated);
+		// }
+		++BlocksSearcher::found;
+		// if (BlocksSearcher::found % 1024 == 0) {
+			// printf("found: %llu \n", BlocksSearcher::found);
+		// }
+		return;
 	}
 }
 
 void BlocksSearcher::DFS() {
 	BlocksSearcher::generated += placementIndices[0][1];
-	// for (unsigned i = placementIndices[0][0]; i < placementIndices[0][0] + placementIndices[0][1]; i += 4) {
-		// __m256i batch = *(__m256i *) (placements + i);
-		// // printm256(batch, "0");
-		// DFSLevel<1>(batch);
-	// }
-
-	for (unsigned i = placementIndices[0][0]; i < placementIndices[0][0] + placementIndices[0][1]; ++i) {
-		DFS64Level<1>(placements[i]);
+	for (unsigned i = placementIndices[0][0]; i < placementIndices[0][0] + placementIndices[0][1]; i += 4) {
+		__m256i batch = *(__m256i *) (placements + i);
+		DFSLevel<1>(batch);
 	}
 	printf("generated: %llu, found: %llu \n", BlocksSearcher::generated, BlocksSearcher::found);
 }
