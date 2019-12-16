@@ -1,0 +1,1 @@
+g++ -std=c++11 MurmurHash3.cpp main.cpp -mavx2 -O3 -Wall -o test.exe
