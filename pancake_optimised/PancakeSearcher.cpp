@@ -14,6 +14,10 @@
 #include "BloomFilter.h"
 #include "HashSet.h"
 #include "IDAStar.h"
+#include "IDAStarXor.h"
+#include "IDAStarXor2.h"
+#include "IDAStarSlim.h"
+#include "IDAStarXorSlim.h"
 #include "BDIDAH.h"
 #include "BDIDAHREF.h"
 //#include "BDIDAHREFAnalyzer.h"
@@ -34,11 +38,11 @@ int main() {
 	// };
 
 	//std::srand(std::time(0));
-	Pancakes start;
-	createRandomState(start);
-	printf("Start: ");
-	printState(start);
-	printf("\n");
+	// Pancakes start;
+	// createRandomState(start);
+	// printf("Start: ");
+	// printState(start);
+	// printf("\n");
 
 	// unsigned result = CAPancakeSearcher::search(start);
 	// printf("C* = %u\n", result);
@@ -48,32 +52,38 @@ int main() {
 	// printf("C*(2) = %u\n", result2);
 	// printf("nodes generated(2) = %llu\n", IDAStarPancakeSearcher::generated);
 
-	const int iterations = 1000;
+	const int iterations = 20;
+	long unsigned total1 = 0;
+	long unsigned total2 = 0;
 	for (unsigned i = 0; i < iterations; ++i) {
 		printf("Instance %u\n", i);
-		Pancakes p;
+		Pancakes p;// = { 35, 25, 6, 14, 31, 36, 24, 37, 34, 30, 38, 23, 20, 17, 27, 33, 45, 40, 12, 26, 48, 32, 41, 49, 18, 28, 7, 0, 2, 21, 13, 22, 19, 39, 29, 3, 42, 4, 43, 5, 16, 10, 44, 8, 46, 11, 15, 1, 47, 9, 50};
 		createRandomState(p);
 		printState(p);
 		printf("\n");
 		unsigned long before = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-		unsigned result = IDAStarPancakeSearcher::search(p);
+		unsigned result = IDAStarSlimPancakeSearcher::search(p);
 		unsigned long after = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-		printf("C* (IDA) = %u\n", result);
-		printf("nodes generated (IDA) = %llu\n", IDAStarPancakeSearcher::generated);
-		printf("time (IDA): %lu\n", (unsigned long) (after - before));
+		printf("C* (IDASlim) = %u\n", result);
+		printf("nodes generated (IDASlim) = %llu\n", IDAStarSlimPancakeSearcher::generated);
+		printf("time (IDASlim): %lu\n", (unsigned long) (after - before));
+		total1 += (after - before);
 
 		unsigned long before2 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-		unsigned result2 = CAPancakeSearcher::search(p);
+		unsigned result2 = IDAStarXorSlimPancakeSearcher::search(p);
 		unsigned long after2 = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
-		printf("C* = %u\n", result2);
-		printf("nodes generated = %llu\n", CAPancakeSearcher::generated);
-		printf("nodes memory used = %llu\n", CAPancakeSearcher::memoryUsed);
+		printf("C* (IDAXorSlim) = %u\n", result2);
+		printf("nodes generated (IDAXorSlim) = %llu\n", IDAStarXorSlimPancakeSearcher::generated);
+		//printf("nodes memory used (IDA) = %llu\n", IDAStarPancakeSearcher::memoryUsed);
+		printf("time (IDAXorSlim): %lu\n", (unsigned long) (after2 - before2));
+		total2 += (after2 - before2);
+
 		if (result2 != result) {
 			printf("ERRRORERRORERROR\n");
 			exit(1);
 		}
-
-		printf("time: %lu\n", (unsigned long) (after2 - before2));
 	}
+	printf("total (IDASlim): %lu\n", total1);
+	printf("total (IDAXorSlim): %lu\n", total2);
 	return 0;
 }

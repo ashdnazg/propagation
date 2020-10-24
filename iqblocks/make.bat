@@ -1,1 +1,1 @@
-g++ -std=c++11 BlocksSearcherNG.cpp -mavx2 -mpopcnt -O3 -funroll-all-loops -Wall -g -o test.exe
+g++ -std=c++14 BlocksSearcherDS9.cpp -mavx2 -mpopcnt -O3 -Wall -g -o test.exe

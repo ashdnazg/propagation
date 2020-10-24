@@ -5,7 +5,6 @@
 #include <immintrin.h>
 #include <cassert>
 
-static constexpr unsigned NUM_PIECES = 10;
 typedef std::uint64_t State;
 
 static constexpr State placements[] = {
@@ -2146,70 +2145,87 @@ public:
 	static std::uint64_t found;
 };
 
-template<int N> void DFS64Level(const std::uint64_t& prevNum);
+//template<int N> void DFS64Level(const std::uint64_t& prevNum);
 
-template<int N>
-void DFSLevel(const __m256i& prevBatch) {
-	for (unsigned i = placementIndices[N][0]; i < placementIndices[N][0] + placementIndices[N][1]; ++i) {
-		const __m256i batch = _mm256_set1_epi64x(placements[i]);
-		const __m256i andnot = _mm256_andnot_si256(batch, prevBatch);
-		const __m256i cmped = _mm256_cmpeq_epi64(andnot, prevBatch);
-		int mask = _mm256_movemask_pd(_mm256_castsi256_pd(cmped));
-		if (mask == 0) {
-			continue;
-		}
+// template<int N>
+// void DFSLevel(const __m256i& prevBatch) {
+	// for (unsigned i = placementIndices[N][0]; i < placementIndices[N][0] + placementIndices[N][1]; ++i) {
+		// const __m256i batch = _mm256_set1_epi64x(placements[i]);
+		// const __m256i andnot = _mm256_andnot_si256(batch, prevBatch);
+		// const __m256i cmped = _mm256_cmpeq_epi64(andnot, prevBatch);
+		// int mask = _mm256_movemask_pd(_mm256_castsi256_pd(cmped));
+		// if (mask == 0) {
+			// continue;
+		// }
 
-		const __m256i ored = _mm256_or_si256(prevBatch, batch);
-		if (mask == 0xF) {
-			DFSLevel<N+1>(ored);
-		} else {
-			if (mask & 1) {
-				DFS64Level<N+1>(_mm256_extract_epi64(ored, 0));
-			}
-			if (mask & 2) {
-				DFS64Level<N+1>(_mm256_extract_epi64(ored, 1));
-			}
-			if (mask & 4) {
-				DFS64Level<N+1>(_mm256_extract_epi64(ored, 2));
-			}
-			if (mask & 8) {
-				DFS64Level<N+1>(_mm256_extract_epi64(ored, 3));
-			}
-		}
-	}
-	BlocksSearcher::generated += placementIndices[N][1];
-	// if (BlocksSearcher::generated % (1024ULL * 1024ULL * 1024ULL) < (BlocksSearcher::generated - placementIndices[N][1]) % (1024ULL * 1024ULL * 1024ULL)) {
-		// printf("generated: %llu \n", BlocksSearcher::generated);
+		// const __m256i ored = _mm256_or_si256(prevBatch, batch);
+		// if (mask == 0xF) {
+			// DFSLevel<N+1>(ored);
+		// } else {
+			// if (mask & 1) {
+				// DFS64Level<N+1>(_mm256_extract_epi64(ored, 0));
+			// }
+			// if (mask & 2) {
+				// DFS64Level<N+1>(_mm256_extract_epi64(ored, 1));
+			// }
+			// if (mask & 4) {
+				// DFS64Level<N+1>(_mm256_extract_epi64(ored, 2));
+			// }
+			// if (mask & 8) {
+				// DFS64Level<N+1>(_mm256_extract_epi64(ored, 3));
+			// }
+		// }
 	// }
-}
+	// BlocksSearcher::generated += placementIndices[N][1];
+	// // if (BlocksSearcher::generated % (1024ULL * 1024ULL * 1024ULL) < (BlocksSearcher::generated - placementIndices[N][1]) % (1024ULL * 1024ULL * 1024ULL)) {
+		// // printf("generated: %llu \n", BlocksSearcher::generated);
+	// // }
+// }
 
-template<>
-inline void DFSLevel<9>(const __m256i& prevBatch) {
-	const __m256i allones = _mm256_set1_epi32(-1);
-	const __m256i invPrevBatch = _mm256_xor_si256(allones, prevBatch);
-	for (unsigned i = placementIndices[9][0]; i < placementIndices[9][0] + placementIndices[9][1]; ++i) {
-		const __m256i batch = _mm256_set1_epi64x(placements[i]);
-		const __m256i cmped = _mm256_cmpeq_epi64(batch, invPrevBatch);
-		int test = _mm256_testz_si256(cmped, cmped);
-		if (test) {
-			continue;
-		}
-
-		BlocksSearcher::generated += i;
-		// if (BlocksSearcher::generated % (1024ULL * 1024ULL * 1024ULL) < (BlocksSearcher::generated - i) % (1024ULL * 1024ULL * 1024ULL)) {
-			// printf("generated: %llu \n", BlocksSearcher::generated);
+// template<>
+// inline void DFSLevel<9>(const __m256i& prevBatch) {
+	// const __m256i allones = _mm256_set1_epi32(-1);
+	// const __m256i invPrevBatch = _mm256_xor_si256(allones, prevBatch);
+	// for (unsigned i = placementIndices[9][0]; i < placementIndices[9][0] + placementIndices[9][1]; ++i) {
+		// const __m256i batch = _mm256_set1_epi64x(placements[i]);
+		// const __m256i cmped = _mm256_cmpeq_epi64(batch, invPrevBatch);
+		// int test = _mm256_testz_si256(cmped, cmped);
+		// if (test) {
+			// continue;
 		// }
-		++BlocksSearcher::found;
-		// if (BlocksSearcher::found % 1024 == 0) {
-			// printf("found: %llu \n", BlocksSearcher::found);
-		// }
-		return;
-	}
-}
 
-template<int N>
-void DFS64Level(const std::uint64_t& prevNum) {
+		// BlocksSearcher::generated += i - placementIndices[9][0];
+		// // if (BlocksSearcher::generated % (1024ULL * 1024ULL * 1024ULL) < (BlocksSearcher::generated - i) % (1024ULL * 1024ULL * 1024ULL)) {
+			// // printf("generated: %llu \n", BlocksSearcher::generated);
+		// // }
+		// ++BlocksSearcher::found;
+		// // if (BlocksSearcher::found % 1024 == 0) {
+			// // printf("found: %llu \n", BlocksSearcher::found);
+		// // }
+		// return;
+	// }
+// }
+
+//template<int N>
+void DFS64Level(int N, const std::uint64_t& prevNum) {
 	const __m256i prevBatch = _mm256_set1_epi64x(prevNum);
+	if (N == 9) {
+        for (unsigned i = placementIndices[9][0]; i < placementIndices[9][0] + placementIndices[9][1]; i += 4) {
+            const __m256i batch = *(__m256i *) (placements + i);
+            //const __m256i andnot = _mm256_andnot_si256(batch, prevBatch);
+            const __m256i cmped = _mm256_cmpeq_epi64(batch, prevBatch);
+            int test = _mm256_testz_si256(cmped, cmped);
+            if (test) {
+                continue;
+            }
+
+            BlocksSearcher::generated += i - placementIndices[9][0];
+
+            ++BlocksSearcher::found;
+            return;
+        }
+        return;
+	}
 	for (unsigned i = placementIndices[N][0]; i < placementIndices[N][0] + placementIndices[N][1]; i += 4) {
 		const __m256i batch = *(__m256i *) (placements + i);
 		const __m256i andnot = _mm256_andnot_si256(batch, prevBatch);
@@ -2218,23 +2234,19 @@ void DFS64Level(const std::uint64_t& prevNum) {
 		if (mask == 0) {
 			continue;
 		}
-
 		const __m256i ored = _mm256_or_si256(prevBatch, batch);
-		if (mask == 0xF) {
-			DFSLevel<N+1>(ored);
-		} else {
-			if (mask & 1) {
-				DFS64Level<N+1>(_mm256_extract_epi64(ored, 0));
-			}
-			if (mask & 2) {
-				DFS64Level<N+1>(_mm256_extract_epi64(ored, 1));
-			}
-			if (mask & 4) {
-				DFS64Level<N+1>(_mm256_extract_epi64(ored, 2));
-			}
-			if (mask & 8) {
-				DFS64Level<N+1>(_mm256_extract_epi64(ored, 3));
-			}
+
+		if (mask & 1) {
+			DFS64Level(N+1,_mm256_extract_epi64(ored, 0));
+		}
+		if (mask & 2) {
+			DFS64Level(N+1,_mm256_extract_epi64(ored, 1));
+		}
+		if (mask & 4) {
+			DFS64Level(N+1,_mm256_extract_epi64(ored, 2));
+		}
+		if (mask & 8) {
+			DFS64Level(N+1,_mm256_extract_epi64(ored, 3));
 		}
 	}
 	BlocksSearcher::generated += placementIndices[N][1];
@@ -2243,35 +2255,34 @@ void DFS64Level(const std::uint64_t& prevNum) {
 	// }
 }
 
-template<>
-inline void DFS64Level<9>(const std::uint64_t& prevNum) {
-	const __m256i prevBatch = _mm256_set1_epi64x(~prevNum);
-	for (unsigned i = placementIndices[9][0]; i < placementIndices[9][0] + placementIndices[9][1]; i += 4) {
-		const __m256i batch = *(__m256i *) (placements + i);
-		//const __m256i andnot = _mm256_andnot_si256(batch, prevBatch);
-		const __m256i cmped = _mm256_cmpeq_epi64(batch, prevBatch);
-		int test = _mm256_testz_si256(cmped, cmped);
-		if (test) {
-			continue;
-		}
+// template<>
+// inline void DFS64Level(const std::uint64_t& prevNum) {
+	// const __m256i prevBatch = _mm256_set1_epi64x(~prevNum);
+	// for (unsigned i = placementIndices[9][0]; i < placementIndices[9][0] + placementIndices[9][1]; i += 4) {
+		// const __m256i batch = *(__m256i *) (placements + i);
+		// //const __m256i andnot = _mm256_andnot_si256(batch, prevBatch);
+		// const __m256i cmped = _mm256_cmpeq_epi64(batch, prevBatch);
+		// int test = _mm256_testz_si256(cmped, cmped);
+		// if (test) {
+			// continue;
+		// }
 
-		BlocksSearcher::generated += i;
-		// if (BlocksSearcher::generated % (1024ULL * 1024ULL * 1024ULL) < (BlocksSearcher::generated - i) % (1024ULL * 1024ULL * 1024ULL)) {
-			// printf("generated: %llu \n", BlocksSearcher::generated);
-		// }
-		++BlocksSearcher::found;
-		// if (BlocksSearcher::found % 1024 == 0) {
-			// printf("found: %llu \n", BlocksSearcher::found);
-		// }
-		return;
-	}
-}
+		// BlocksSearcher::generated += i - placementIndices[9][0];
+		// // if (BlocksSearcher::generated % (1024ULL * 1024ULL * 1024ULL) < (BlocksSearcher::generated - i) % (1024ULL * 1024ULL * 1024ULL)) {
+			// // printf("generated: %llu \n", BlocksSearcher::generated);
+		// // }
+		// ++BlocksSearcher::found;
+		// // if (BlocksSearcher::found % 1024 == 0) {
+			// // printf("found: %llu \n", BlocksSearcher::found);
+		// // }
+		// return;
+	// }
+// }
 
 void BlocksSearcher::DFS() {
 	BlocksSearcher::generated += placementIndices[0][1];
-	for (unsigned i = placementIndices[0][0]; i < placementIndices[0][0] + placementIndices[0][1]; i += 4) {
-		__m256i batch = *(__m256i *) (placements + i);
-		DFSLevel<1>(batch);
+	for (unsigned i = placementIndices[0][0]; i < placementIndices[0][0] + placementIndices[0][1]; ++i) {
+		DFS64Level(1, placements[i]);
 	}
 	printf("generated: %llu, found: %llu \n", BlocksSearcher::generated, BlocksSearcher::found);
 }

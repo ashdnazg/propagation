@@ -1,0 +1,1 @@
+g++ -g --std=c++14 SIMDMeasurer.cpp -O3 -mavx2 -DNDEBUG -Wall -static -o simd.exe

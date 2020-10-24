@@ -10,7 +10,7 @@ public:
 		//unsigned h;
 	};
 
-	typedef HashSet<Pancakes, PancakeHasher, 1 << 31> myHashSet;
+	typedef HashSet<Pancakes, PancakeHasher, 1 << 30> myHashSet;
 	typedef unsigned Cache[N + 1][N + 1];
 
 	static bool CASearch(const Pancakes& start, const Pancakes& goal, unsigned thF, unsigned thB);
@@ -75,12 +75,9 @@ unsigned CAPancakeSearcher::backwardSearch(const Pancakes& start, const Pancakes
 		// unroll
 		if (flip < 0) {
 			const int backflip = -flip;
-			const int pivot = backflip / 2;
 			h -= hCache[legend[pancakes[backflip]]][legend[pancakes[0]]];
 			h += hCache[legend[pancakes[backflip]]][legend[pancakes[backflip - 1]]];
-			for (int pos = 0; pos < pivot; ++pos) {
-				std::swap(pancakes[pos], pancakes[backflip - pos - 1]);
-			}
+			std::reverse(pancakes.begin(), pancakes.begin() + backflip);
 
 			--sp;
 			--g;
@@ -95,10 +92,7 @@ unsigned CAPancakeSearcher::backwardSearch(const Pancakes& start, const Pancakes
 			h -= hCache[legend[pancakes[flip]]][legend[pancakes[0]]];
 			h += hCache[legend[pancakes[flip]]][legend[pancakes[flip - 1]]];
 
-			const int pivot = flip / 2;
-			for (int pos = 0; pos < pivot; ++pos) {
-				std::swap(pancakes[pos], pancakes[flip - pos - 1]);
-			}
+			std::reverse(pancakes.begin(), pancakes.begin() + flip);
 			++g;
 			// printf("committing, g: %d=>%d, flip: %d, h: %u\n", g - 1 ,g, flip, h);
 			// printState(pancakes);

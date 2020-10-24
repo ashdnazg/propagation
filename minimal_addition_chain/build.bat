@@ -1,0 +1,1 @@
+g++ -g --std=c++14 ChainSearcher.cpp -O3 -DNDEBUG -Wall -static -o main.exe
